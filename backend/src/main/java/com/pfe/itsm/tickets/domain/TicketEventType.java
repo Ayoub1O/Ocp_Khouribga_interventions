@@ -1,0 +1,17 @@
+package com.pfe.itsm.tickets.domain;
+
+public enum TicketEventType {
+    TICKET_CREE,
+    QUALIFIE_PAR_N0,
+    SOLUTION_N0_PROPOSEE,
+    RESOLU_PAR_N0,
+    ESCALADE_VERS_N1,
+    PRIS_EN_CHARGE,
+    ESCALADE_VERS_N2,
+    ESCALADE_VERS_N3,
+    INTERVENTION_PLANIFIEE,
+    PIECE_CONSOMMEE,
+    RESOLU,
+    CLOTURE
+}
+
