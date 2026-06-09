@@ -142,10 +142,30 @@ POST /api/chatbot/sessions/{id}/escalate
 GET    /api/interventions
 POST   /api/interventions
 GET    /api/interventions/{id}
-PATCH  /api/interventions/{id}
+GET    /api/interventions/ticket/{ticketId}
 POST   /api/interventions/{id}/start
 POST   /api/interventions/{id}/complete
-POST   /api/interventions/{id}/report
+POST   /api/interventions/{id}/cancel
+```
+
+Creation d'intervention :
+
+```json
+{
+  "ticketId": "uuid-ticket",
+  "technicienId": "uuid-technicien-n2-ou-n3",
+  "dateDebutPrevue": "2026-06-10T09:00:00Z",
+  "dateFinPrevue": "2026-06-10T11:00:00Z",
+  "lieu": "Bureau 204"
+}
+```
+
+Cloture d'intervention :
+
+```json
+{
+  "rapport": "Diagnostic effectue sur site. Poste redemarre et connectique verifiee."
+}
 ```
 
 ## Stock

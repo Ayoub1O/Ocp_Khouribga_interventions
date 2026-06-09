@@ -31,6 +31,27 @@ N3
 8. N3 gere les interventions avancees et les remplacements materiels.
 9. Toute transition genere un evenement d'audit.
 
+## Interventions
+
+Les interventions sont rattachees a un ticket et a un technicien N2 ou N3.
+
+Etats :
+
+```text
+PLANIFIEE
+EN_COURS
+TERMINEE
+ANNULEE
+```
+
+Regles principales :
+
+- N2, N3 et ADMIN peuvent planifier une intervention.
+- Une intervention doit etre assignee a un technicien N2 ou N3.
+- Le technicien assigne ou un ADMIN peut demarrer et terminer l'intervention.
+- Le rapport est renseigne a la fin de l'intervention.
+- Chaque action importante ajoute un evenement dans l'historique du ticket.
+
 ## Adoption d'un ticket
 
 L'adoption est une action volontaire du technicien :
@@ -65,4 +86,3 @@ Effets :
 - l'ancien technicien est libere ;
 - le ticket devient disponible dans la nouvelle file ;
 - la raison d'escalade est historisee.
-
