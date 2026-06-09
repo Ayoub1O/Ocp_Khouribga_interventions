@@ -123,6 +123,34 @@ Regles :
 - le stock disponible ne peut pas devenir negatif ;
 - une piece est en alerte lorsque sa quantite disponible est inferieure ou egale au seuil d'alerte.
 
+### Notification
+
+Notification applicative destinee a un utilisateur.
+
+Champs principaux :
+
+- `id`
+- `recipient`
+- `type`
+- `title`
+- `message`
+- `resourceType`
+- `resourceId`
+- `createdAt`
+- `readAt`
+
+Types principaux :
+
+- `TICKET_CREE`
+- `TICKET_PRIS_EN_CHARGE`
+- `TICKET_ESCALADE`
+- `TICKET_RESOLU`
+- `INTERVENTION_PLANIFIEE`
+- `INTERVENTION_TERMINEE`
+- `STOCK_BAS`
+
+Les notifications sont persistantes pour l'historique in-app et poussees via WebSocket lorsque l'utilisateur est connecte.
+
 ## Relations principales
 
 - Un `User` demandeur possede plusieurs `Ticket`.

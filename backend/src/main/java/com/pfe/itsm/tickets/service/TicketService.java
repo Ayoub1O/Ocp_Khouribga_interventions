@@ -3,6 +3,8 @@ package com.pfe.itsm.tickets.service;
 import com.pfe.itsm.common.BusinessException;
 import com.pfe.itsm.common.ResourceNotFoundException;
 import com.pfe.itsm.auth.security.CurrentUserService;
+import com.pfe.itsm.notifications.domain.NotificationType;
+import com.pfe.itsm.notifications.service.NotificationService;
 import com.pfe.itsm.tickets.domain.SupportLevel;
 import com.pfe.itsm.tickets.domain.Ticket;
 import com.pfe.itsm.tickets.domain.TicketEvent;
@@ -29,17 +31,20 @@ public class TicketService {
     private final TicketEventRepository ticketEventRepository;
     private final UserAccountRepository userAccountRepository;
     private final CurrentUserService currentUserService;
+    private final NotificationService notificationService;
 
     public TicketService(
             TicketRepository ticketRepository,
             TicketEventRepository ticketEventRepository,
             UserAccountRepository userAccountRepository,
-            CurrentUserService currentUserService
+            CurrentUserService currentUserService,
+            NotificationService notificationService
     ) {
         this.ticketRepository = ticketRepository;
         this.ticketEventRepository = ticketEventRepository;
         this.userAccountRepository = userAccountRepository;
         this.currentUserService = currentUserService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -60,6 +65,15 @@ public class TicketService {
 
         Ticket saved = ticketRepository.save(ticket);
         addEvent(saved, demandeur, TicketEventType.TICKET_CREE, "Ticket cree par le demandeur.");
+        notificationService.notifyRole(
+                UserRole.TECH_N1,
+                NotificationType.TICKET_CREE,
+                "Nouveau ticket N1",
+                "Un nouveau ticket est disponible dans la file N1: " + saved.getReference(),
+                "TICKET",
+                saved.getId()
+        );
+        notificationService.publishQueueUpdate(saved.getNiveauCourant(), TicketResponse.from(saved));
         return TicketResponse.from(saved);
     }
 
@@ -85,7 +99,18 @@ public class TicketService {
 
         ticket.claim(technicien);
         addEvent(ticket, technicien, TicketEventType.PRIS_EN_CHARGE, "Ticket pris en charge.");
-        return TicketResponse.from(ticket);
+        TicketResponse response = TicketResponse.from(ticket);
+        notificationService.notifyUser(
+                ticket.getDemandeur(),
+                NotificationType.TICKET_PRIS_EN_CHARGE,
+                "Ticket pris en charge",
+                "Votre ticket " + ticket.getReference() + " est pris en charge.",
+                "TICKET",
+                ticket.getId()
+        );
+        notificationService.publishTicketUpdate(ticket.getId(), response);
+        notificationService.publishQueueUpdate(ticket.getNiveauCourant(), response);
+        return response;
     }
 
     @Transactional
@@ -97,7 +122,19 @@ public class TicketService {
 
         ticket.escalate(nextLevel);
         addEvent(ticket, acteur, eventTypeForEscalation(nextLevel), raison);
-        return TicketResponse.from(ticket);
+        TicketResponse response = TicketResponse.from(ticket);
+        notificationService.notifyUser(
+                ticket.getDemandeur(),
+                NotificationType.TICKET_ESCALADE,
+                "Ticket escalade",
+                "Votre ticket " + ticket.getReference() + " a ete escalade vers " + nextLevel + ".",
+                "TICKET",
+                ticket.getId()
+        );
+        notifyQueueForLevel(nextLevel, ticket);
+        notificationService.publishTicketUpdate(ticket.getId(), response);
+        notificationService.publishQueueUpdate(nextLevel, response);
+        return response;
     }
 
     @Transactional
@@ -108,7 +145,17 @@ public class TicketService {
 
         ticket.resolve();
         addEvent(ticket, acteur, TicketEventType.RESOLU, "Ticket resolu.");
-        return TicketResponse.from(ticket);
+        TicketResponse response = TicketResponse.from(ticket);
+        notificationService.notifyUser(
+                ticket.getDemandeur(),
+                NotificationType.TICKET_RESOLU,
+                "Ticket resolu",
+                "Votre ticket " + ticket.getReference() + " est marque comme resolu.",
+                "TICKET",
+                ticket.getId()
+        );
+        notificationService.publishTicketUpdate(ticket.getId(), response);
+        return response;
     }
 
     @Transactional
@@ -121,7 +168,9 @@ public class TicketService {
 
         ticket.close();
         addEvent(ticket, acteur, TicketEventType.CLOTURE, "Ticket cloture.");
-        return TicketResponse.from(ticket);
+        TicketResponse response = TicketResponse.from(ticket);
+        notificationService.publishTicketUpdate(ticket.getId(), response);
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -170,6 +219,25 @@ public class TicketService {
             case N3 -> TicketEventType.ESCALADE_VERS_N3;
             case N0 -> throw new BusinessException("Escalade vers N0 invalide.");
         };
+    }
+
+    private void notifyQueueForLevel(SupportLevel level, Ticket ticket) {
+        UserRole role = switch (level) {
+            case N1 -> UserRole.TECH_N1;
+            case N2 -> UserRole.TECH_N2;
+            case N3 -> UserRole.TECH_N3;
+            case N0 -> null;
+        };
+        if (role != null) {
+            notificationService.notifyRole(
+                    role,
+                    NotificationType.TICKET_ESCALADE,
+                    "Ticket disponible " + level,
+                    "Le ticket " + ticket.getReference() + " est disponible dans la file " + level + ".",
+                    "TICKET",
+                    ticket.getId()
+            );
+        }
     }
 
     private void requireTechnicianForLevel(UserAccount technicien, SupportLevel level) {

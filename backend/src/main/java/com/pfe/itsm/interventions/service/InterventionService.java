@@ -9,6 +9,8 @@ import com.pfe.itsm.interventions.dto.CompleteInterventionRequest;
 import com.pfe.itsm.interventions.dto.CreateInterventionRequest;
 import com.pfe.itsm.interventions.dto.InterventionResponse;
 import com.pfe.itsm.interventions.repository.InterventionRepository;
+import com.pfe.itsm.notifications.domain.NotificationType;
+import com.pfe.itsm.notifications.service.NotificationService;
 import com.pfe.itsm.tickets.domain.SupportLevel;
 import com.pfe.itsm.tickets.domain.Ticket;
 import com.pfe.itsm.tickets.domain.TicketEvent;
@@ -31,19 +33,22 @@ public class InterventionService {
     private final TicketEventRepository ticketEventRepository;
     private final UserAccountRepository userAccountRepository;
     private final CurrentUserService currentUserService;
+    private final NotificationService notificationService;
 
     public InterventionService(
             InterventionRepository interventionRepository,
             TicketRepository ticketRepository,
             TicketEventRepository ticketEventRepository,
             UserAccountRepository userAccountRepository,
-            CurrentUserService currentUserService
+            CurrentUserService currentUserService,
+            NotificationService notificationService
     ) {
         this.interventionRepository = interventionRepository;
         this.ticketRepository = ticketRepository;
         this.ticketEventRepository = ticketEventRepository;
         this.userAccountRepository = userAccountRepository;
         this.currentUserService = currentUserService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -69,7 +74,25 @@ public class InterventionService {
                 request.lieu().trim()
         ));
         addTicketEvent(ticket, actor, TicketEventType.INTERVENTION_PLANIFIEE, "Intervention planifiee.");
-        return InterventionResponse.from(intervention);
+        InterventionResponse response = InterventionResponse.from(intervention);
+        notificationService.notifyUser(
+                technicien,
+                NotificationType.INTERVENTION_PLANIFIEE,
+                "Nouvelle intervention",
+                "Une intervention vous a ete planifiee pour le ticket " + ticket.getReference() + ".",
+                "INTERVENTION",
+                intervention.getId()
+        );
+        notificationService.notifyUser(
+                ticket.getDemandeur(),
+                NotificationType.INTERVENTION_PLANIFIEE,
+                "Intervention planifiee",
+                "Une intervention a ete planifiee pour votre ticket " + ticket.getReference() + ".",
+                "INTERVENTION",
+                intervention.getId()
+        );
+        notificationService.publishTicketUpdate(ticket.getId(), response);
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -125,7 +148,17 @@ public class InterventionService {
 
         intervention.complete(request.rapport().trim());
         addTicketEvent(intervention.getTicket(), actor, TicketEventType.INTERVENTION_TERMINEE, request.rapport().trim());
-        return InterventionResponse.from(intervention);
+        InterventionResponse response = InterventionResponse.from(intervention);
+        notificationService.notifyUser(
+                intervention.getTicket().getDemandeur(),
+                NotificationType.INTERVENTION_TERMINEE,
+                "Intervention terminee",
+                "Une intervention liee a votre ticket est terminee.",
+                "INTERVENTION",
+                intervention.getId()
+        );
+        notificationService.publishTicketUpdate(intervention.getTicket().getId(), response);
+        return response;
     }
 
     @Transactional

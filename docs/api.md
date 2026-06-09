@@ -217,13 +217,22 @@ GET  /api/notifications
 POST /api/notifications/{id}/read
 ```
 
+Les notifications sont stockees en base et publiees en temps reel lorsque l'utilisateur est connecte en WebSocket.
+
 ## WebSocket
 
 Canaux proposes :
 
 ```text
+/ws
 /topic/tickets/{ticketId}
 /topic/queues/{level}
 /user/queue/notifications
 /topic/dashboard
 ```
+
+Exemples :
+
+- `/topic/tickets/{ticketId}` : changements visibles sur un ticket.
+- `/topic/queues/n1` : mise a jour de la file N1.
+- `/user/queue/notifications` : notifications privees de l'utilisateur authentifie.

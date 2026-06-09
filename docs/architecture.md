@@ -77,4 +77,22 @@ Le mobile ne duplique pas la logique metier. Les decisions de workflow restent d
 - Les techniciens adoptent les tickets depuis leur file.
 - Toute action importante genere un evenement d'audit.
 - Les stocks sont modifies uniquement par des mouvements traces.
+- Les notifications sont persistantes et diffusees en temps reel via WebSocket.
 
+## Temps reel
+
+Le backend expose un endpoint STOMP :
+
+```text
+/ws
+```
+
+Canaux principaux :
+
+```text
+/topic/tickets/{ticketId}
+/topic/queues/{level}
+/user/queue/notifications
+```
+
+Les clients Angular et Flutter peuvent s'abonner a ces canaux pour recevoir les mises a jour de tickets, files de support et notifications utilisateur.

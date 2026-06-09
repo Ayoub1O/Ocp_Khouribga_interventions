@@ -15,6 +15,8 @@ import com.pfe.itsm.inventory.dto.StockMovementResponse;
 import com.pfe.itsm.inventory.dto.UpdateSparePartRequest;
 import com.pfe.itsm.inventory.repository.SparePartRepository;
 import com.pfe.itsm.inventory.repository.StockMovementRepository;
+import com.pfe.itsm.notifications.domain.NotificationType;
+import com.pfe.itsm.notifications.service.NotificationService;
 import com.pfe.itsm.tickets.domain.TicketEvent;
 import com.pfe.itsm.tickets.domain.TicketEventType;
 import com.pfe.itsm.tickets.repository.TicketEventRepository;
@@ -34,19 +36,22 @@ public class InventoryService {
     private final InterventionRepository interventionRepository;
     private final TicketEventRepository ticketEventRepository;
     private final CurrentUserService currentUserService;
+    private final NotificationService notificationService;
 
     public InventoryService(
             SparePartRepository sparePartRepository,
             StockMovementRepository stockMovementRepository,
             InterventionRepository interventionRepository,
             TicketEventRepository ticketEventRepository,
-            CurrentUserService currentUserService
+            CurrentUserService currentUserService,
+            NotificationService notificationService
     ) {
         this.sparePartRepository = sparePartRepository;
         this.stockMovementRepository = stockMovementRepository;
         this.interventionRepository = interventionRepository;
         this.ticketEventRepository = ticketEventRepository;
         this.currentUserService = currentUserService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -140,6 +145,17 @@ public class InventoryService {
                     TicketEventType.PIECE_CONSOMMEE,
                     "Piece consommee: " + part.getReference() + " x" + request.quantite()
             ));
+            notificationService.publishTicketUpdate(intervention.getTicket().getId(), StockMovementResponse.from(movement));
+        }
+        if (part.isLowStock()) {
+            notificationService.notifyRole(
+                    UserRole.ADMIN,
+                    NotificationType.STOCK_BAS,
+                    "Alerte stock bas",
+                    "La piece " + part.getReference() + " a atteint son seuil d'alerte.",
+                    "SPARE_PART",
+                    part.getId()
+            );
         }
         return StockMovementResponse.from(movement);
     }
