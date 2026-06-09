@@ -206,9 +206,66 @@ Mouvement de stock :
 Regles principales :
 
 - `ADMIN` gere le catalogue et les entrees/ajustements de stock.
+- `TECH_N1`, `TECH_N2` et `TECH_N3` consultent le catalogue et les alertes de stock.
 - `TECH_N3` peut consommer une piece avec une sortie liee a une intervention.
 - Les sorties ne peuvent pas rendre le stock negatif.
 - Une alerte est exposee lorsque `quantiteDisponible <= seuilAlerte`.
+
+## Tableaux de bord
+
+```text
+GET /api/dashboard/admin
+GET /api/dashboard/technician
+GET /api/dashboard/requester
+```
+
+Les tableaux de bord exposent des KPI deja agreges pour Angular/Chart.js. Les donnees sont filtrees cote backend selon le role connecte.
+
+`ADMIN` :
+
+```json
+{
+  "totalTickets": 42,
+  "ticketsOuverts": 8,
+  "ticketsResolus": 21,
+  "totalInterventions": 12,
+  "piecesEnAlerte": 3,
+  "ticketsParStatut": [
+    { "libelle": "OUVERT", "total": 8 }
+  ],
+  "ticketsParNiveau": [
+    { "libelle": "N1", "total": 15 }
+  ],
+  "interventionsParStatut": [
+    { "libelle": "PLANIFIEE", "total": 4 }
+  ]
+}
+```
+
+`TECH_N1`, `TECH_N2`, `TECH_N3` :
+
+```json
+{
+  "ticketsAssignes": 6,
+  "ticketsEnCours": 3,
+  "ticketsFileNiveau": 9,
+  "interventionsPlanifiees": 2,
+  "piecesEnAlerte": 3,
+  "ticketsAssignesParStatut": [],
+  "interventionsParStatut": []
+}
+```
+
+`DEMANDEUR` :
+
+```json
+{
+  "totalTickets": 5,
+  "ticketsOuverts": 1,
+  "ticketsResolus": 2,
+  "ticketsParStatut": []
+}
+```
 
 ## Notifications
 

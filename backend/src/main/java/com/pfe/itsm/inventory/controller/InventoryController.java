@@ -31,7 +31,7 @@ public class InventoryController {
     }
 
     @GetMapping("/spare-parts")
-    @PreAuthorize("hasAnyRole('TECH_N3', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TECH_N1', 'TECH_N2', 'TECH_N3', 'ADMIN')")
     public List<SparePartResponse> listParts() {
         return inventoryService.listParts();
     }
@@ -44,7 +44,7 @@ public class InventoryController {
     }
 
     @GetMapping("/spare-parts/{id}")
-    @PreAuthorize("hasAnyRole('TECH_N3', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TECH_N1', 'TECH_N2', 'TECH_N3', 'ADMIN')")
     public SparePartResponse getPart(@PathVariable UUID id) {
         return inventoryService.getPart(id);
     }
@@ -75,7 +75,7 @@ public class InventoryController {
     }
 
     @GetMapping("/stock-alerts")
-    @PreAuthorize("hasAnyRole('TECH_N3', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TECH_N1', 'TECH_N2', 'TECH_N3', 'ADMIN')")
     public List<SparePartResponse> lowStockAlerts() {
         return inventoryService.lowStockAlerts();
     }

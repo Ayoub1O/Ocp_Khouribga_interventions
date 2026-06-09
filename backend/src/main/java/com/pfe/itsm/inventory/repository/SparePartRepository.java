@@ -15,4 +15,7 @@ public interface SparePartRepository extends JpaRepository<SparePart, UUID> {
 
     @Query("select p from SparePart p where p.actif = true and p.quantiteDisponible <= p.seuilAlerte")
     List<SparePart> findLowStockParts();
+
+    @Query("select count(p) from SparePart p where p.actif = true and p.quantiteDisponible <= p.seuilAlerte")
+    long countLowStockParts();
 }
