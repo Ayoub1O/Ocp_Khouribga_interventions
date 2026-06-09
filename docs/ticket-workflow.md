@@ -52,6 +52,18 @@ Regles principales :
 - Le rapport est renseigne a la fin de l'intervention.
 - Chaque action importante ajoute un evenement dans l'historique du ticket.
 
+## Consommation de pieces
+
+Les pieces de rechange sont consommees principalement pendant les interventions N3.
+
+Regles principales :
+
+- une sortie de stock doit etre rattachee a une intervention ;
+- seul un technicien N3 ou un administrateur peut declarer une consommation ;
+- chaque consommation diminue le stock disponible ;
+- le stock ne peut pas devenir negatif ;
+- un evenement `PIECE_CONSOMMEE` est ajoute dans l'historique du ticket.
+
 ## Adoption d'un ticket
 
 L'adoption est une action volontaire du technicien :

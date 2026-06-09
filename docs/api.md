@@ -176,8 +176,39 @@ POST   /api/spare-parts
 GET    /api/spare-parts/{id}
 PATCH  /api/spare-parts/{id}
 POST   /api/spare-parts/{id}/stock-movements
+GET    /api/spare-parts/{id}/stock-movements
 GET    /api/stock-alerts
 ```
+
+Creation de piece :
+
+```json
+{
+  "reference": "SSD-512-SATA",
+  "nom": "SSD 512 Go SATA",
+  "description": "Disque de remplacement pour postes utilisateurs",
+  "quantiteInitiale": 10,
+  "seuilAlerte": 2
+}
+```
+
+Mouvement de stock :
+
+```json
+{
+  "type": "SORTIE",
+  "quantite": 1,
+  "interventionId": "uuid-intervention",
+  "commentaire": "Remplacement du disque defectueux"
+}
+```
+
+Regles principales :
+
+- `ADMIN` gere le catalogue et les entrees/ajustements de stock.
+- `TECH_N3` peut consommer une piece avec une sortie liee a une intervention.
+- Les sorties ne peuvent pas rendre le stock negatif.
+- Une alerte est exposee lorsque `quantiteDisponible <= seuilAlerte`.
 
 ## Notifications
 

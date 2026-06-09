@@ -110,6 +110,19 @@ Champs principaux :
 - `dateMouvement`
 - `commentaire`
 
+Types :
+
+- `ENTREE`
+- `SORTIE`
+- `AJUSTEMENT`
+
+Regles :
+
+- une sortie de stock doit etre liee a une intervention ;
+- la consommation d'une piece ajoute un evenement `PIECE_CONSOMMEE` au ticket ;
+- le stock disponible ne peut pas devenir negatif ;
+- une piece est en alerte lorsque sa quantite disponible est inferieure ou egale au seuil d'alerte.
+
 ## Relations principales
 
 - Un `User` demandeur possede plusieurs `Ticket`.
@@ -125,4 +138,3 @@ Champs principaux :
 - Un ticket cloture ne peut plus etre modifie sauf par action admin tracee.
 - Une sortie de stock ne peut pas rendre la quantite disponible negative.
 - Les articles de connaissance utilises par N0 doivent etre actifs et valides.
-
