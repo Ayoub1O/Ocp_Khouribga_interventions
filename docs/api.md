@@ -10,7 +10,11 @@
 
 ```text
 POST /api/auth/login
+POST /api/auth/register
+GET  /api/auth/verify-email?token=...
 POST /api/auth/refresh
+POST /api/auth/logout
+POST /api/auth/accept-invitation
 GET  /api/auth/me
 ```
 
@@ -19,6 +23,68 @@ Les appels proteges utilisent un JWT dans l'en-tete :
 ```text
 Authorization: Bearer <token>
 ```
+
+Le backend recupere l'identite de l'utilisateur depuis le JWT. Les clients ne doivent pas envoyer d'identifiant utilisateur pour prendre en charge, escalader, resoudre ou cloturer un ticket.
+
+Les refresh tokens, tokens de verification email et tokens d'invitation sont opaques, renouveles ou consommes a usage unique, et stockes cote serveur uniquement sous forme de hash.
+
+Inscription demandeur :
+
+```json
+{
+  "nom": "Benali",
+  "prenom": "Yassine",
+  "email": "yassine.benali@example.com",
+  "password": "MotDePasseFort!2026"
+}
+```
+
+Le role est toujours force a `DEMANDEUR`. L'utilisateur doit confirmer son adresse email avant de pouvoir se connecter.
+
+Acceptation d'invitation :
+
+```json
+{
+  "token": "token-recu-par-email",
+  "password": "MotDePasseFort!2026"
+}
+```
+
+## Utilisateurs
+
+```text
+GET  /api/users
+GET  /api/users/{id}
+POST /api/users
+POST /api/users/invitations
+```
+
+Ces endpoints sont reserves au role `ADMIN`. Le premier administrateur doit etre cree manuellement dans la base de donnees avec un mot de passe BCrypt, afin d'eviter tout compte automatique ou secret par defaut dans le code.
+
+Creation d'utilisateur :
+
+```json
+{
+  "nom": "Dupont",
+  "prenom": "Sara",
+  "email": "sara.dupont@example.com",
+  "password": "MotDePasseFort!2026",
+  "role": "TECH_N1"
+}
+```
+
+Invitation technicien ou administrateur :
+
+```json
+{
+  "nom": "Alami",
+  "prenom": "Nora",
+  "email": "nora.alami@example.com",
+  "role": "TECH_N1"
+}
+```
+
+Le systeme envoie un email SMTP contenant un lien d'acceptation. Aucun mot de passe n'est envoye par email.
 
 ## Tickets
 
@@ -32,6 +98,25 @@ POST   /api/tickets/{id}/escalate
 POST   /api/tickets/{id}/resolve
 POST   /api/tickets/{id}/close
 GET    /api/tickets/{id}/events
+```
+
+Creation de ticket :
+
+```json
+{
+  "titre": "Impossible de se connecter au VPN",
+  "description": "Le client VPN affiche une erreur lors de la connexion.",
+  "categorie": "RESEAU",
+  "priorite": "NORMALE"
+}
+```
+
+Escalade :
+
+```json
+{
+  "raison": "Resolution distante impossible apres diagnostic N1."
+}
 ```
 
 ## Files de support
@@ -91,4 +176,3 @@ Canaux proposes :
 /user/queue/notifications
 /topic/dashboard
 ```
-

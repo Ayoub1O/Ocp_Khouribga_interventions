@@ -76,3 +76,38 @@ Les tickets ne sont pas attribues par score ou competition. Chaque niveau possed
 - [Workflow des tickets](docs/ticket-workflow.md)
 - [Assistant N0 et RAG hybride](docs/n0-rag.md)
 - [Conventions API REST](docs/api.md)
+
+## Configuration locale
+
+Les identifiants reels de base de donnees ne doivent pas etre commits.
+
+Le fichier versionne `backend/src/main/resources/application.yml` utilise des variables d'environnement :
+
+```text
+DB_URL
+DB_USERNAME
+DB_PASSWORD
+JPA_DDL_AUTO
+SERVER_PORT
+```
+
+Pour une configuration locale, copier :
+
+```text
+backend/src/main/resources/application-local.example.yml
+```
+
+vers :
+
+```text
+backend/src/main/resources/application-local.yml
+```
+
+puis renseigner les identifiants locaux. Le fichier `application-local.yml` est ignore par Git.
+
+Demarrage local :
+
+```bash
+cd backend
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```

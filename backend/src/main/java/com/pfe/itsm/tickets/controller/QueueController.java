@@ -4,6 +4,7 @@ import com.pfe.itsm.tickets.domain.SupportLevel;
 import com.pfe.itsm.tickets.dto.TicketResponse;
 import com.pfe.itsm.tickets.service.TicketService;
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,8 +21,8 @@ public class QueueController {
     }
 
     @GetMapping("/{level}/tickets")
+    @PreAuthorize("hasAnyRole('TECH_N1', 'TECH_N2', 'TECH_N3', 'ADMIN')")
     public List<TicketResponse> listQueue(@PathVariable SupportLevel level) {
         return ticketService.listQueue(level);
     }
 }
-

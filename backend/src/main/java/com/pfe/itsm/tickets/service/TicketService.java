@@ -2,6 +2,7 @@ package com.pfe.itsm.tickets.service;
 
 import com.pfe.itsm.common.BusinessException;
 import com.pfe.itsm.common.ResourceNotFoundException;
+import com.pfe.itsm.auth.security.CurrentUserService;
 import com.pfe.itsm.tickets.domain.SupportLevel;
 import com.pfe.itsm.tickets.domain.Ticket;
 import com.pfe.itsm.tickets.domain.TicketEvent;
@@ -27,20 +28,23 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final TicketEventRepository ticketEventRepository;
     private final UserAccountRepository userAccountRepository;
+    private final CurrentUserService currentUserService;
 
     public TicketService(
             TicketRepository ticketRepository,
             TicketEventRepository ticketEventRepository,
-            UserAccountRepository userAccountRepository
+            UserAccountRepository userAccountRepository,
+            CurrentUserService currentUserService
     ) {
         this.ticketRepository = ticketRepository;
         this.ticketEventRepository = ticketEventRepository;
         this.userAccountRepository = userAccountRepository;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
     public TicketResponse create(CreateTicketRequest request) {
-        UserAccount demandeur = findUser(request.demandeurId());
+        UserAccount demandeur = currentUserService.currentUser();
         if (demandeur.getRole() != UserRole.DEMANDEUR && demandeur.getRole() != UserRole.ADMIN) {
             throw new BusinessException("Seul un demandeur peut declarer un ticket.");
         }
@@ -61,6 +65,9 @@ public class TicketService {
 
     @Transactional(readOnly = true)
     public List<TicketResponse> listQueue(SupportLevel level) {
+        UserAccount user = currentUserService.currentUser();
+        requireQueueAccess(user, level);
+
         return ticketRepository.findByNiveauCourantAndTechnicienAssigneIsNullAndStatutIn(
                         level,
                         List.of(TicketStatus.OUVERT, TicketStatus.ESCALADE)
@@ -71,9 +78,9 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponse claim(UUID ticketId, UUID technicienId) {
+    public TicketResponse claim(UUID ticketId) {
         Ticket ticket = findLockedTicket(ticketId);
-        UserAccount technicien = findUser(technicienId);
+        UserAccount technicien = currentUserService.currentUser();
         requireTechnicianForLevel(technicien, ticket.getNiveauCourant());
 
         ticket.claim(technicien);
@@ -82,9 +89,10 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponse escalate(UUID ticketId, UUID acteurId, String raison) {
+    public TicketResponse escalate(UUID ticketId, String raison) {
         Ticket ticket = findLockedTicket(ticketId);
-        UserAccount acteur = acteurId == null ? null : findUser(acteurId);
+        UserAccount acteur = currentUserService.currentUser();
+        requireTicketActor(ticket, acteur);
         SupportLevel nextLevel = nextLevel(ticket.getNiveauCourant());
 
         ticket.escalate(nextLevel);
@@ -93,9 +101,10 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponse resolve(UUID ticketId, UUID acteurId) {
+    public TicketResponse resolve(UUID ticketId) {
         Ticket ticket = findLockedTicket(ticketId);
-        UserAccount acteur = acteurId == null ? null : findUser(acteurId);
+        UserAccount acteur = currentUserService.currentUser();
+        requireTicketActor(ticket, acteur);
 
         ticket.resolve();
         addEvent(ticket, acteur, TicketEventType.RESOLU, "Ticket resolu.");
@@ -103,9 +112,12 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponse close(UUID ticketId, UUID acteurId) {
+    public TicketResponse close(UUID ticketId) {
         Ticket ticket = findLockedTicket(ticketId);
-        UserAccount acteur = acteurId == null ? null : findUser(acteurId);
+        UserAccount acteur = currentUserService.currentUser();
+        if (acteur.getRole() != UserRole.ADMIN && !ticket.getDemandeur().getId().equals(acteur.getId())) {
+            throw new BusinessException("Seul le demandeur ou un administrateur peut cloturer ce ticket.");
+        }
 
         ticket.close();
         addEvent(ticket, acteur, TicketEventType.CLOTURE, "Ticket cloture.");
@@ -114,9 +126,9 @@ public class TicketService {
 
     @Transactional(readOnly = true)
     public List<TicketEventResponse> events(UUID ticketId) {
-        if (!ticketRepository.existsById(ticketId)) {
-            throw new ResourceNotFoundException("Ticket introuvable.");
-        }
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket introuvable."));
+        requireTicketVisibility(ticket, currentUserService.currentUser());
         return ticketEventRepository.findByTicketIdOrderByDateEvenementAsc(ticketId)
                 .stream()
                 .map(TicketEventResponse::from)
@@ -172,5 +184,42 @@ public class TicketService {
             throw new BusinessException("Le technicien n'appartient pas au niveau de support requis.");
         }
     }
-}
 
+    private void requireQueueAccess(UserAccount user, SupportLevel level) {
+        if (user.getRole() == UserRole.ADMIN) {
+            return;
+        }
+        requireTechnicianForLevel(user, level);
+    }
+
+    private void requireTicketActor(Ticket ticket, UserAccount actor) {
+        if (actor.getRole() == UserRole.ADMIN) {
+            return;
+        }
+        if (ticket.getTechnicienAssigne() == null || !ticket.getTechnicienAssigne().getId().equals(actor.getId())) {
+            throw new BusinessException("Seul le technicien en charge peut modifier ce ticket.");
+        }
+    }
+
+    private void requireTicketVisibility(Ticket ticket, UserAccount user) {
+        if (user.getRole() == UserRole.ADMIN || ticket.getDemandeur().getId().equals(user.getId())) {
+            return;
+        }
+        if (ticket.getTechnicienAssigne() != null && ticket.getTechnicienAssigne().getId().equals(user.getId())) {
+            return;
+        }
+        if (isTechnicianForLevel(user, ticket.getNiveauCourant())) {
+            return;
+        }
+        throw new BusinessException("Acces au ticket non autorise.");
+    }
+
+    private boolean isTechnicianForLevel(UserAccount user, SupportLevel level) {
+        return switch (level) {
+            case N0 -> false;
+            case N1 -> user.getRole() == UserRole.TECH_N1;
+            case N2 -> user.getRole() == UserRole.TECH_N2;
+            case N3 -> user.getRole() == UserRole.TECH_N3;
+        };
+    }
+}

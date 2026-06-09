@@ -38,6 +38,9 @@ public class UserAccount {
     @Column(nullable = false)
     private boolean actif = true;
 
+    @Column(nullable = false)
+    private boolean emailVerified;
+
     @Column(nullable = false, updatable = false)
     private Instant dateCreation = Instant.now();
 
@@ -47,9 +50,23 @@ public class UserAccount {
     public UserAccount(String nom, String prenom, String email, String passwordHash, UserRole role) {
         this.nom = nom;
         this.prenom = prenom;
-        this.email = email;
+        this.email = email.toLowerCase();
         this.passwordHash = passwordHash;
         this.role = role;
+    }
+
+    public UserAccount(
+            String nom,
+            String prenom,
+            String email,
+            String passwordHash,
+            UserRole role,
+            boolean actif,
+            boolean emailVerified
+    ) {
+        this(nom, prenom, email, passwordHash, role);
+        this.actif = actif;
+        this.emailVerified = emailVerified;
     }
 
     public UUID getId() {
@@ -80,8 +97,27 @@ public class UserAccount {
         return actif;
     }
 
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
     public Instant getDateCreation() {
         return dateCreation;
     }
-}
 
+    public void desactiver() {
+        this.actif = false;
+    }
+
+    public void activer() {
+        this.actif = true;
+    }
+
+    public void verifierEmail() {
+        this.emailVerified = true;
+    }
+
+    public void changerMotDePasse(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+}
