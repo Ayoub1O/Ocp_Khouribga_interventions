@@ -1,0 +1,68 @@
+@prefix itsm: <https://pfe.local/itsm/ontology#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+itsm:KnowledgeArticle a rdfs:Class ;
+    rdfs:label "Knowledge article" .
+
+itsm:KnowledgeSection a rdfs:Class ;
+    rdfs:label "Knowledge section" .
+
+itsm:Symptom a rdfs:Class ;
+    rdfs:label "Incident symptom" .
+
+itsm:Cause a rdfs:Class ;
+    rdfs:label "Root cause" .
+
+itsm:Solution a rdfs:Class ;
+    rdfs:label "Solution step" .
+
+itsm:Verification a rdfs:Class ;
+    rdfs:label "Verification step" .
+
+itsm:EscalationRule a rdfs:Class ;
+    rdfs:label "Escalation rule" .
+
+itsm:TicketCategory a rdfs:Class ;
+    rdfs:label "Ticket category" .
+
+itsm:SupportLevel a rdfs:Class ;
+    rdfs:label "Support level" .
+
+itsm:hasSection a rdf:Property ;
+    rdfs:domain itsm:KnowledgeArticle ;
+    rdfs:range itsm:KnowledgeSection .
+
+itsm:hasSymptom a rdf:Property ;
+    rdfs:domain itsm:KnowledgeArticle ;
+    rdfs:range itsm:Symptom .
+
+itsm:hasCause a rdf:Property ;
+    rdfs:domain itsm:KnowledgeArticle ;
+    rdfs:range itsm:Cause .
+
+itsm:hasSolution a rdf:Property ;
+    rdfs:domain itsm:KnowledgeArticle ;
+    rdfs:range itsm:Solution .
+
+itsm:hasVerification a rdf:Property ;
+    rdfs:domain itsm:KnowledgeArticle ;
+    rdfs:range itsm:Verification .
+
+itsm:hasEscalationRule a rdf:Property ;
+    rdfs:domain itsm:KnowledgeArticle ;
+    rdfs:range itsm:EscalationRule .
+
+itsm:belongsToCategory a rdf:Property ;
+    rdfs:domain itsm:KnowledgeArticle ;
+    rdfs:range itsm:TicketCategory .
+
+itsm:escalatesTo a rdf:Property ;
+    rdfs:domain itsm:KnowledgeArticle ;
+    rdfs:range itsm:SupportLevel .
+
+itsm:documentedIn a rdf:Property ;
+    rdfs:range itsm:KnowledgeArticle .
+
+itsm:sourceText a rdf:Property ;
+    rdfs:label "source text" .

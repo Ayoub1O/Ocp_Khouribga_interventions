@@ -94,6 +94,10 @@ POST  /api/knowledge/articles
 GET   /api/knowledge/articles/{id}
 PATCH /api/knowledge/articles/{id}
 POST  /api/knowledge/imports
+GET   /api/knowledge/semantic/model
+GET   /api/knowledge/semantic/articles/{id}/triples
+GET   /api/knowledge/semantic/articles/{id}/reasoning
+POST  /api/knowledge/semantic/sparql
 ```
 
 Ces endpoints sont reserves au role `ADMIN`. Les articles alimentent N0 sans modifier le code ni les migrations applicatives. A chaque creation, import ou mise a jour, le backend regenere les chunks utilises par la recherche N0.
@@ -131,6 +135,21 @@ Regles d'import :
 - l'article importe est cree comme brouillon inactif (`actif=false`) ;
 - les chunks heritent du type de section pour privilegier les procedures lors de la recherche N0 ;
 - un administrateur doit relire, corriger et activer l'article avant utilisation par N0.
+
+API Semantic Web :
+
+- `/api/knowledge/semantic/model` retourne le graphe RDF actif en Turtle.
+- `/api/knowledge/semantic/articles/{id}/triples` retourne les triples RDF d'un article.
+- `/api/knowledge/semantic/articles/{id}/reasoning` retourne les symptomes, causes, solutions, verifications et niveau d'escalade deduits des sections.
+- `/api/knowledge/semantic/sparql` execute une requete SPARQL `SELECT` admin-only sur le modele RDF genere depuis les connaissances actives.
+
+Exemple SPARQL :
+
+```json
+{
+  "query": "select ?article ?level where { ?article itsm:escalatesTo ?level }"
+}
+```
 
 ## Tickets
 

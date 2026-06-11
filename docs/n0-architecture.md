@@ -184,19 +184,85 @@ Les garde-fous actuels sont :
 
 ## Evolution Graph + Vector
 
-La structure actuelle prepare l'evolution vers un RAG plus avance :
+La structure actuelle inclut maintenant une couche Semantic Web avec Apache Jena :
+
+```text
+Articles actifs + sections
+      |
+      v
+RDF Model Jena
+      |
+      v
+SPARQL + raisonnement N0
+```
+
+Le vocabulaire RDF modelise :
+
+- `KnowledgeArticle`
+- `KnowledgeSection`
+- `Symptom`
+- `Cause`
+- `Solution`
+- `Verification`
+- `EscalationRule`
+- `TicketCategory`
+- `SupportLevel`
+
+Relations principales :
+
+- `hasSymptom`
+- `hasCause`
+- `hasSolution`
+- `hasVerification`
+- `hasEscalationRule`
+- `belongsToCategory`
+- `escalatesTo`
+- `documentedIn`
+
+Les termes generiques utilisent les standards RDF/RDFS :
+
+- `rdf:type` pour typer une ressource ;
+- `rdfs:label` pour les libelles humains.
+
+Les proprietes `itsm:*` sont reservees aux relations metier ITSM. Le projet conserve aussi une ontologie Turtle formelle :
+
+```text
+backend/src/main/resources/ontology/itsm.ttl
+```
+
+Les namespaces sont separes :
+
+```text
+https://pfe.local/itsm/ontology#   classes et proprietes
+https://pfe.local/itsm/resource/   instances generees
+```
+
+Exemple :
+
+```text
+itsm:Symptom      = classe
+res:section-{id}  = instance issue d'une section importee
+res:RESEAU        = instance de TicketCategory
+res:N1            = instance de SupportLevel
+```
+
+N0 utilise ce graphe pour ajouter des indices de raisonnement, notamment le niveau d'escalade indique par les sections `ESCALADE`. Le workflow operationnel reste strictement sequentiel : N0 escalade toujours vers N1.
+
+## Evolution Vector + LLM
+
+La structure actuelle prepare l'evolution vers un RAG encore plus avance :
 
 ```text
 KnowledgeChunk
    +--> embedding vectoriel
-   +--> liens graphe symptome/cause/solution/escalade
+   +--> liens graphe symptome/cause/solution/escalade deja representes en RDF
 ```
 
 Etapes futures :
 
 1. Ajouter `pgvector` pour la similarite semantique.
-2. Ajouter des tables graphe `knowledge_nodes` et `knowledge_edges`.
-3. Lier les sections extraites aux noeuds `SYMPTOME`, `CAUSE`, `SOLUTION`, `SUPPORT_LEVEL`.
-4. Combiner recherche mot-cle, recherche vectorielle et expansion graphe.
+2. Ajouter un service d'embeddings pour les chunks.
+3. Combiner recherche mot-cle, recherche vectorielle et graphe RDF.
+4. Ajouter un generateur LLM garde par les chunks et triples recuperes.
 
 Cette evolution garde le meme contrat N0. Le changement se fait dans la couche retrieval, pas dans le workflow ticket.
