@@ -86,7 +86,13 @@ Effets :
 
 ## Escalade
 
-L'escalade deplace le ticket vers le niveau suivant.
+L'escalade deplace le ticket vers le niveau suivant uniquement. Aucun niveau ne peut etre saute.
+
+```text
+N0 -> N1 -> N2 -> N3
+```
+
+Un ticket N3 ne peut pas etre escalade davantage.
 
 ```text
 POST /api/tickets/{id}/escalate

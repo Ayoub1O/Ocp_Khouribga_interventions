@@ -86,6 +86,52 @@ Invitation technicien ou administrateur :
 
 Le systeme envoie un email SMTP contenant un lien d'acceptation. Aucun mot de passe n'est envoye par email.
 
+## Base de connaissances N0
+
+```text
+GET   /api/knowledge/articles
+POST  /api/knowledge/articles
+GET   /api/knowledge/articles/{id}
+PATCH /api/knowledge/articles/{id}
+POST  /api/knowledge/imports
+```
+
+Ces endpoints sont reserves au role `ADMIN`. Les articles alimentent N0 sans modifier le code ni les migrations applicatives. A chaque creation, import ou mise a jour, le backend regenere les chunks utilises par la recherche N0.
+
+Creation ou mise a jour :
+
+```json
+{
+  "titre": "Connexion VPN - erreur 809",
+  "categorie": "RESEAU",
+  "contenu": "Procedure de diagnostic validee par l'equipe support...",
+  "motsCles": "vpn,erreur 809,ikev2,pare-feu",
+  "actif": true
+}
+```
+
+Import documentaire :
+
+```text
+POST /api/knowledge/imports
+Content-Type: multipart/form-data
+
+file=<procedure.txt|procedure.md>
+categorie=RESEAU
+motsCles=vpn,erreur 809,ikev2,pare-feu
+```
+
+Regles d'import :
+
+- fichiers acceptes en premiere version : `.txt`, `.md` ;
+- taille maximale : 2 Mo ;
+- encodage attendu : UTF-8 ;
+- extraction des sections a partir des titres Markdown ou lignes terminees par `:` ;
+- sections reconnues : symptomes, causes, prerequis, procedure, verification, escalade ;
+- l'article importe est cree comme brouillon inactif (`actif=false`) ;
+- les chunks heritent du type de section pour privilegier les procedures lors de la recherche N0 ;
+- un administrateur doit relire, corriger et activer l'article avant utilisation par N0.
+
 ## Tickets
 
 ```text
@@ -132,9 +178,56 @@ GET /api/queues/n3/tickets
 ```text
 POST /api/chatbot/sessions
 POST /api/chatbot/sessions/{id}/messages
+GET  /api/chatbot/sessions/{id}/messages
 POST /api/chatbot/sessions/{id}/confirm-resolution
 POST /api/chatbot/sessions/{id}/escalate
 ```
+
+Creation de session :
+
+```json
+{
+  "messageInitial": "Je n'arrive pas a me connecter au VPN, erreur 809."
+}
+```
+
+Message utilisateur :
+
+```json
+{
+  "message": "Le probleme concerne le VPN avec erreur 809."
+}
+```
+
+Reponse N0 :
+
+```json
+{
+  "session": {
+    "id": "uuid-session",
+    "statut": "OUVERTE",
+    "categorieDetectee": "RESEAU",
+    "ticketId": null
+  },
+  "reponse": {
+    "auteur": "BOT",
+    "contenu": "Voici une procedure documentee a essayer...",
+    "sourcesUtilisees": "Connexion VPN - controles de base v1",
+    "confidenceScore": 0.75
+  },
+  "confidenceScore": 0.75,
+  "escaladeRecommandee": false,
+  "sources": ["Connexion VPN - controles de base v1"],
+  "ticket": null
+}
+```
+
+Regles N0 :
+
+- N0 repond uniquement depuis les articles actifs de la base de connaissances.
+- Si le score de confiance est insuffisant, N0 recommande l'escalade.
+- L'escalade N0 cree un ticket dans la file N1. Elle ne peut pas aller directement vers N2 ou N3.
+- La conversation est conservee dans l'historique de session et reprise dans la description du ticket cree.
 
 ## Interventions
 
