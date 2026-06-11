@@ -27,7 +27,7 @@ Base de connaissances + sections + chunks
 
 ## Implementation actuelle
 
-La version actuelle n'utilise pas encore d'embeddings. Elle met en place la base robuste necessaire au RAG :
+La version actuelle n'utilise pas encore d'embeddings. Elle met en place la base robuste necessaire au RAG et ajoute une couche Semantic Web :
 
 - import `.txt` et `.md` ;
 - articles inactifs par defaut apres import ;
@@ -35,6 +35,10 @@ La version actuelle n'utilise pas encore d'embeddings. Elle met en place la base
 - extraction de sections ;
 - generation de chunks ;
 - recherche par categorie, mots-cles et type de section ;
+- generation RDF avec Apache Jena ;
+- requetes SPARQL admin-only ;
+- raisonnement par relations RDF entre article, symptomes, causes, solutions et niveau d'escalade ;
+- utilisation des standards `rdf:type` et `rdfs:label`, avec proprietes metier `itsm:*` ;
 - seuil de confiance ;
 - escalade vers N1 si l'information est insuffisante.
 

@@ -12,6 +12,7 @@ import com.pfe.itsm.n0.domain.KnowledgeSectionType;
 import com.pfe.itsm.n0.dto.ChatbotAnswerResponse;
 import com.pfe.itsm.n0.dto.ChatbotMessageResponse;
 import com.pfe.itsm.n0.dto.ChatbotSessionResponse;
+import com.pfe.itsm.n0.dto.SemanticReasoningResponse;
 import com.pfe.itsm.n0.dto.SendChatbotMessageRequest;
 import com.pfe.itsm.n0.dto.StartChatbotSessionRequest;
 import com.pfe.itsm.n0.repository.ChatbotMessageRepository;
@@ -41,19 +42,22 @@ public class ChatbotService {
     private final KnowledgeChunkRepository chunkRepository;
     private final CurrentUserService currentUserService;
     private final TicketService ticketService;
+    private final SemanticGraphService semanticGraphService;
 
     public ChatbotService(
             ChatbotSessionRepository sessionRepository,
             ChatbotMessageRepository messageRepository,
             KnowledgeChunkRepository chunkRepository,
             CurrentUserService currentUserService,
-            TicketService ticketService
+            TicketService ticketService,
+            SemanticGraphService semanticGraphService
     ) {
         this.sessionRepository = sessionRepository;
         this.messageRepository = messageRepository;
         this.chunkRepository = chunkRepository;
         this.currentUserService = currentUserService;
         this.ticketService = ticketService;
+        this.semanticGraphService = semanticGraphService;
     }
 
     @Transactional
@@ -161,17 +165,22 @@ public class ChatbotService {
         String content;
         String sources = null;
         double confidence = match == null ? 0 : match.score();
+        SemanticReasoningResponse reasoning = match == null
+                ? null
+                : semanticGraphService.reasonForArticle(match.chunk().getArticle().getId());
         boolean escalationRecommended = confidence < ANSWER_THRESHOLD;
 
         if (match != null && confidence >= ANSWER_THRESHOLD) {
             content = "Voici une procedure documentee a essayer:\n\n"
                     + match.chunk().getContenu()
+                    + semanticHint(reasoning)
                     + "\n\nLe probleme est-il resolu ?";
             sources = match.chunk().getArticle().getTitre() + " v" + match.chunk().getArticle().getVersion();
         } else if (session.getCategorieDetectee() == null) {
             content = "Je n'ai pas encore assez d'elements. Precisez l'application concernee, le message d'erreur ou le materiel impacte.";
         } else {
-            content = "Je n'ai pas trouve de procedure suffisamment fiable. Je recommande une escalade vers N1.";
+            content = "Je n'ai pas trouve de procedure suffisamment fiable. Je recommande une escalade vers N1."
+                    + semanticHint(reasoning);
         }
 
         ChatbotMessage botMessage = saveMessage(
@@ -240,6 +249,15 @@ public class ChatbotService {
             score -= 0.10;
         }
         return new ChunkMatch(chunk, Math.min(score, 0.95));
+    }
+
+    private String semanticHint(SemanticReasoningResponse reasoning) {
+        if (reasoning == null || !reasoning.hasEscalationHint()) {
+            return "";
+        }
+        return "\n\nNote de raisonnement semantique: la base de connaissances relie cet incident au niveau "
+                + reasoning.niveauEscalade()
+                + ". Le workflow reste sequentiel: toute escalade N0 passe d'abord par N1.";
     }
 
     private TicketCategory detectCategory(String message) {
