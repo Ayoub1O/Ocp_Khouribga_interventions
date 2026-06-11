@@ -6,33 +6,46 @@ L'assistant N0 est le premier point de contact. Il qualifie l'incident, guide le
 
 Il ne remplace pas les techniciens et ne doit pas inventer de procedure.
 
-## Architecture
+## Architecture cible
 
 ```text
 Interface chat Angular / Flutter
         |
 ChatbotController
         |
-ChatbotOrchestratorService
+ChatbotService
         |
 +------------------------------+
-| DiagnosticFlowService        |
-| KnowledgeRetrievalService    |
+| KnowledgeBaseService         |
+| Retrieval / scoring          |
 | TicketService                |
-| AuditService                 |
 | NotificationService          |
 +------------------------------+
         |
-Base de connaissances + index vectoriel + recherche texte
+Base de connaissances + sections + chunks
 ```
 
-## Type de RAG
+## Implementation actuelle
 
-Le projet utilise un RAG hybride :
+La version actuelle n'utilise pas encore d'embeddings. Elle met en place la base robuste necessaire au RAG :
+
+- import `.txt` et `.md` ;
+- articles inactifs par defaut apres import ;
+- validation administrateur ;
+- extraction de sections ;
+- generation de chunks ;
+- recherche par categorie, mots-cles et type de section ;
+- seuil de confiance ;
+- escalade vers N1 si l'information est insuffisante.
+
+## Type de RAG cible
+
+L'evolution cible est un RAG hybride puis graphe + vector :
 
 - recherche vectorielle pour la similarite semantique ;
 - recherche texte pour les mots exacts, codes erreur, noms logiciels et references materiel ;
 - filtres metadata pour la langue, categorie, niveau de support et statut de validation.
+- graphe de connaissances pour relier symptomes, causes, solutions et niveau d'escalade.
 
 Seuls les articles actifs, valides et autorises pour N0 peuvent etre utilises dans les reponses au demandeur.
 
@@ -72,4 +85,3 @@ Je vais vous aider a verifier le probleme VPN. Utilisez-vous un ordinateur profe
 ```
 
 Si les informations correspondent a un article valide, N0 propose une procedure simple. Sinon, il cree ou complete le ticket et l'envoie vers la file N1.
-
