@@ -224,11 +224,19 @@ Les termes generiques utilisent les standards RDF/RDFS :
 - `rdf:type` pour typer une ressource ;
 - `rdfs:label` pour les libelles humains.
 
-Les proprietes `itsm:*` sont reservees aux relations metier ITSM. Le projet conserve aussi une ontologie Turtle formelle :
+Les proprietes `itsm:*` sont reservees aux relations metier ITSM. Le projet conserve aussi une ontologie Turtle formelle de style OWL-lite :
 
 ```text
 backend/src/main/resources/ontology/itsm.ttl
 ```
+
+Cette ontologie declare :
+
+- `owl:Ontology` pour identifier le vocabulaire ITSM ;
+- `owl:Class` pour les concepts comme `Symptom`, `Cause`, `Solution`, `SupportLevel` ;
+- `owl:ObjectProperty` pour les relations entre ressources ;
+- `owl:DatatypeProperty` pour les valeurs litterales comme `sourceText` ;
+- `rdfs:subClassOf`, `rdfs:domain`, `rdfs:range`, `rdfs:label` et `rdfs:comment` pour documenter la semantique.
 
 Les namespaces sont separes :
 

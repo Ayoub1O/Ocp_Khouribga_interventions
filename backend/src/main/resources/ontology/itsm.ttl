@@ -1,68 +1,167 @@
 @prefix itsm: <https://pfe.local/itsm/ontology#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
-itsm:KnowledgeArticle a rdfs:Class ;
-    rdfs:label "Knowledge article" .
+itsm: rdf:type owl:Ontology ;
+    rdfs:label "ITSM Support Knowledge Ontology"@en ,
+               "Ontologie de connaissance support ITSM"@fr ;
+    rdfs:comment "Lightweight OWL ontology used by the N0 assistant to represent support knowledge, symptoms, causes, solutions, verification steps and escalation levels."@en ,
+                 "Ontologie OWL legere utilisee par l'assistant N0 pour representer les connaissances support, symptomes, causes, solutions, verifications et niveaux d'escalade."@fr .
 
-itsm:KnowledgeSection a rdfs:Class ;
-    rdfs:label "Knowledge section" .
+#################################################################
+# Classes
+#################################################################
 
-itsm:Symptom a rdfs:Class ;
-    rdfs:label "Incident symptom" .
+itsm:KnowledgeConcept rdf:type owl:Class ;
+    rdfs:label "Knowledge concept"@en ,
+               "Concept de connaissance"@fr ;
+    rdfs:comment "Generic superclass for extracted support concepts."@en ,
+                 "Classe generique pour les concepts extraits des connaissances support."@fr .
 
-itsm:Cause a rdfs:Class ;
-    rdfs:label "Root cause" .
+itsm:KnowledgeArticle rdf:type owl:Class ;
+    rdfs:label "Knowledge article"@en ,
+               "Article de connaissance"@fr ;
+    rdfs:comment "Validated or imported support procedure used as a source for N0."@en ,
+                 "Procedure support validee ou importee servant de source a N0."@fr .
 
-itsm:Solution a rdfs:Class ;
-    rdfs:label "Solution step" .
+itsm:KnowledgeSection rdf:type owl:Class ;
+    rdfs:label "Knowledge section"@en ,
+               "Section de connaissance"@fr ;
+    rdfs:comment "Structured section extracted from a knowledge article."@en ,
+                 "Section structuree extraite d'un article de connaissance."@fr .
 
-itsm:Verification a rdfs:Class ;
-    rdfs:label "Verification step" .
+itsm:Symptom rdf:type owl:Class ;
+    rdfs:subClassOf itsm:KnowledgeConcept ;
+    rdfs:label "Symptom"@en ,
+               "Symptome"@fr ;
+    rdfs:comment "Observable issue reported by a requester."@en ,
+                 "Probleme observable signale par un demandeur."@fr .
 
-itsm:EscalationRule a rdfs:Class ;
-    rdfs:label "Escalation rule" .
+itsm:Cause rdf:type owl:Class ;
+    rdfs:subClassOf itsm:KnowledgeConcept ;
+    rdfs:label "Cause"@en ,
+               "Cause"@fr ;
+    rdfs:comment "Known or suspected root cause of an incident."@en ,
+                 "Cause connue ou probable d'un incident."@fr .
 
-itsm:TicketCategory a rdfs:Class ;
-    rdfs:label "Ticket category" .
+itsm:Solution rdf:type owl:Class ;
+    rdfs:subClassOf itsm:KnowledgeConcept ;
+    rdfs:label "Solution"@en ,
+               "Solution"@fr ;
+    rdfs:comment "Documented remediation or troubleshooting step."@en ,
+                 "Etape documentee de resolution ou diagnostic."@fr .
 
-itsm:SupportLevel a rdfs:Class ;
-    rdfs:label "Support level" .
+itsm:Verification rdf:type owl:Class ;
+    rdfs:subClassOf itsm:KnowledgeConcept ;
+    rdfs:label "Verification"@en ,
+               "Verification"@fr ;
+    rdfs:comment "Step used to confirm whether the issue is resolved."@en ,
+                 "Etape permettant de confirmer la resolution du probleme."@fr .
 
-itsm:hasSection a rdf:Property ;
+itsm:EscalationRule rdf:type owl:Class ;
+    rdfs:subClassOf itsm:KnowledgeConcept ;
+    rdfs:label "Escalation rule"@en ,
+               "Regle d'escalade"@fr ;
+    rdfs:comment "Rule indicating when a ticket should be escalated."@en ,
+                 "Regle indiquant quand un ticket doit etre escalade."@fr .
+
+itsm:TicketCategory rdf:type owl:Class ;
+    rdfs:label "Ticket category"@en ,
+               "Categorie de ticket"@fr ;
+    rdfs:comment "Functional category of an IT incident."@en ,
+                 "Categorie fonctionnelle d'un incident IT."@fr .
+
+itsm:SupportLevel rdf:type owl:Class ;
+    rdfs:label "Support level"@en ,
+               "Niveau de support"@fr ;
+    rdfs:comment "Support tier such as N1, N2 or N3."@en ,
+                 "Niveau de support tel que N1, N2 ou N3."@fr .
+
+#################################################################
+# Object Properties
+#################################################################
+
+itsm:hasSection rdf:type owl:ObjectProperty ;
     rdfs:domain itsm:KnowledgeArticle ;
-    rdfs:range itsm:KnowledgeSection .
+    rdfs:range itsm:KnowledgeSection ;
+    rdfs:label "has section"@en ,
+               "possede une section"@fr ;
+    rdfs:comment "Links an article to one of its extracted sections."@en ,
+                 "Relie un article a une de ses sections extraites."@fr .
 
-itsm:hasSymptom a rdf:Property ;
+itsm:hasSymptom rdf:type owl:ObjectProperty ;
     rdfs:domain itsm:KnowledgeArticle ;
-    rdfs:range itsm:Symptom .
+    rdfs:range itsm:Symptom ;
+    rdfs:label "has symptom"@en ,
+               "a pour symptome"@fr ;
+    rdfs:comment "Links a knowledge article to a symptom it documents."@en ,
+                 "Relie un article de connaissance a un symptome documente."@fr .
 
-itsm:hasCause a rdf:Property ;
+itsm:hasCause rdf:type owl:ObjectProperty ;
     rdfs:domain itsm:KnowledgeArticle ;
-    rdfs:range itsm:Cause .
+    rdfs:range itsm:Cause ;
+    rdfs:label "has cause"@en ,
+               "a pour cause"@fr ;
+    rdfs:comment "Links a knowledge article to a documented cause."@en ,
+                 "Relie un article de connaissance a une cause documentee."@fr .
 
-itsm:hasSolution a rdf:Property ;
+itsm:hasSolution rdf:type owl:ObjectProperty ;
     rdfs:domain itsm:KnowledgeArticle ;
-    rdfs:range itsm:Solution .
+    rdfs:range itsm:Solution ;
+    rdfs:label "has solution"@en ,
+               "a pour solution"@fr ;
+    rdfs:comment "Links a knowledge article to a remediation procedure."@en ,
+                 "Relie un article de connaissance a une procedure de resolution."@fr .
 
-itsm:hasVerification a rdf:Property ;
+itsm:hasVerification rdf:type owl:ObjectProperty ;
     rdfs:domain itsm:KnowledgeArticle ;
-    rdfs:range itsm:Verification .
+    rdfs:range itsm:Verification ;
+    rdfs:label "has verification"@en ,
+               "a pour verification"@fr ;
+    rdfs:comment "Links a knowledge article to a verification step."@en ,
+                 "Relie un article de connaissance a une etape de verification."@fr .
 
-itsm:hasEscalationRule a rdf:Property ;
+itsm:hasEscalationRule rdf:type owl:ObjectProperty ;
     rdfs:domain itsm:KnowledgeArticle ;
-    rdfs:range itsm:EscalationRule .
+    rdfs:range itsm:EscalationRule ;
+    rdfs:label "has escalation rule"@en ,
+               "a pour regle d'escalade"@fr ;
+    rdfs:comment "Links a knowledge article to an escalation condition."@en ,
+                 "Relie un article de connaissance a une condition d'escalade."@fr .
 
-itsm:belongsToCategory a rdf:Property ;
+itsm:belongsToCategory rdf:type owl:ObjectProperty ;
     rdfs:domain itsm:KnowledgeArticle ;
-    rdfs:range itsm:TicketCategory .
+    rdfs:range itsm:TicketCategory ;
+    rdfs:label "belongs to category"@en ,
+               "appartient a la categorie"@fr ;
+    rdfs:comment "Links a support article to an ITSM ticket category."@en ,
+                 "Relie un article support a une categorie de ticket ITSM."@fr .
 
-itsm:escalatesTo a rdf:Property ;
+itsm:escalatesTo rdf:type owl:ObjectProperty ;
     rdfs:domain itsm:KnowledgeArticle ;
-    rdfs:range itsm:SupportLevel .
+    rdfs:range itsm:SupportLevel ;
+    rdfs:label "escalates to"@en ,
+               "escalade vers"@fr ;
+    rdfs:comment "Indicates the support level recommended by a knowledge article. Operational escalation remains sequential in the backend workflow."@en ,
+                 "Indique le niveau de support recommande par un article. L'escalade operationnelle reste sequentielle dans le workflow backend."@fr .
 
-itsm:documentedIn a rdf:Property ;
-    rdfs:range itsm:KnowledgeArticle .
+itsm:documentedIn rdf:type owl:ObjectProperty ;
+    rdfs:domain itsm:KnowledgeConcept ;
+    rdfs:range itsm:KnowledgeArticle ;
+    rdfs:label "documented in"@en ,
+               "documente dans"@fr ;
+    rdfs:comment "Links an extracted concept to the article that documents it."@en ,
+                 "Relie un concept extrait a l'article qui le documente."@fr .
 
-itsm:sourceText a rdf:Property ;
-    rdfs:label "source text" .
+#################################################################
+# Datatype Properties
+#################################################################
+
+itsm:sourceText rdf:type owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "source text"@en ,
+               "texte source"@fr ;
+    rdfs:comment "Text fragment extracted from a knowledge section."@en ,
+                 "Fragment textuel extrait d'une section de connaissance."@fr .
