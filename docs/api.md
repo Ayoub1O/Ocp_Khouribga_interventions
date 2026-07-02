@@ -94,6 +94,7 @@ POST  /api/knowledge/articles
 GET   /api/knowledge/articles/{id}
 PATCH /api/knowledge/articles/{id}
 POST  /api/knowledge/imports
+POST  /api/knowledge/embeddings/reindex
 GET   /api/knowledge/semantic/model
 GET   /api/knowledge/semantic/articles/{id}/triples
 GET   /api/knowledge/semantic/articles/{id}/reasoning
@@ -148,6 +149,23 @@ Exemple SPARQL :
 ```json
 {
   "query": "select ?article ?level where { ?article itsm:escalatesTo ?level }"
+}
+```
+
+Reindexation vectorielle :
+
+```text
+POST /api/knowledge/embeddings/reindex
+```
+
+Genere ou regenere les embeddings `pgvector` des chunks actifs. Reponse :
+
+```json
+{
+  "chunksTraites": 12,
+  "embeddingsGeneres": 12,
+  "erreurs": 0,
+  "fournisseurConfigure": true
 }
 ```
 
@@ -243,9 +261,12 @@ Reponse N0 :
 
 Regles N0 :
 
-- N0 repond uniquement depuis les articles actifs de la base de connaissances.
+- N0 sanitise les donnees sensibles avant appel Gemini.
+- N0 combine recherche pgvector, mots-cles, categorie et raisonnement RDF.
+- Gemini genere une reponse francaise controlee, avec les articles internes en priorite.
 - Si le score de confiance est insuffisant, N0 recommande l'escalade.
 - L'escalade N0 cree un ticket dans la file N1. Elle ne peut pas aller directement vers N2 ou N3.
+- L'escalade n'est jamais automatique : elle passe par l'endpoint de confirmation utilisateur.
 - La conversation est conservee dans l'historique de session et reprise dans la description du ticket cree.
 
 ## Interventions

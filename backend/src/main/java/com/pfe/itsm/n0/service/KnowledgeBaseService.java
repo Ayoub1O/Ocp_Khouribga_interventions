@@ -6,6 +6,7 @@ import com.pfe.itsm.n0.domain.KnowledgeArticle;
 import com.pfe.itsm.n0.domain.KnowledgeChunk;
 import com.pfe.itsm.n0.domain.KnowledgeSection;
 import com.pfe.itsm.n0.domain.KnowledgeSectionType;
+import com.pfe.itsm.n0.dto.EmbeddingReindexResponse;
 import com.pfe.itsm.n0.dto.KnowledgeImportResponse;
 import com.pfe.itsm.n0.dto.KnowledgeArticleRequest;
 import com.pfe.itsm.n0.dto.KnowledgeArticleResponse;
@@ -32,15 +33,18 @@ public class KnowledgeBaseService {
     private final KnowledgeArticleRepository articleRepository;
     private final KnowledgeChunkRepository chunkRepository;
     private final KnowledgeSectionRepository sectionRepository;
+    private final KnowledgeVectorService vectorService;
 
     public KnowledgeBaseService(
             KnowledgeArticleRepository articleRepository,
             KnowledgeChunkRepository chunkRepository,
-            KnowledgeSectionRepository sectionRepository
+            KnowledgeSectionRepository sectionRepository,
+            KnowledgeVectorService vectorService
     ) {
         this.articleRepository = articleRepository;
         this.chunkRepository = chunkRepository;
         this.sectionRepository = sectionRepository;
+        this.vectorService = vectorService;
     }
 
     @Transactional(readOnly = true)
@@ -124,7 +128,7 @@ public class KnowledgeBaseService {
                     sectionIndex
             ));
             for (String chunk : splitIntoChunks(section.content())) {
-                chunkRepository.save(new KnowledgeChunk(
+                KnowledgeChunk savedChunk = chunkRepository.save(new KnowledgeChunk(
                         article,
                         chunk,
                         article.getMotsCles(),
@@ -132,9 +136,15 @@ public class KnowledgeBaseService {
                         chunkOrder++,
                         article.isActif()
                 ));
+                vectorService.indexChunk(savedChunk);
             }
         }
         return chunkOrder;
+    }
+
+    @Transactional
+    public EmbeddingReindexResponse reindexEmbeddings() {
+        return vectorService.reindexActiveChunks();
     }
 
     private KnowledgeArticle findArticle(UUID id) {

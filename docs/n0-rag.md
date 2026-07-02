@@ -27,7 +27,7 @@ Base de connaissances + sections + chunks
 
 ## Implementation actuelle
 
-La version actuelle n'utilise pas encore d'embeddings. Elle met en place la base robuste necessaire au RAG et ajoute une couche Semantic Web :
+La version actuelle met en place un RAG hybride avec base documentaire, recherche vectorielle, Semantic Web et generation controlee :
 
 - import `.txt` et `.md` ;
 - articles inactifs par defaut apres import ;
@@ -35,23 +35,27 @@ La version actuelle n'utilise pas encore d'embeddings. Elle met en place la base
 - extraction de sections ;
 - generation de chunks ;
 - recherche par categorie, mots-cles et type de section ;
+- embeddings Gemini des chunks ;
+- stockage pgvector dans PostgreSQL ;
+- recherche par similarite cosinus ;
 - generation RDF avec Apache Jena ;
 - requetes SPARQL admin-only ;
 - raisonnement par relations RDF entre article, symptomes, causes, solutions et niveau d'escalade ;
+- generation de reponse par Gemini apres sanitization ;
 - utilisation des standards `rdf:type` et `rdfs:label`, avec proprietes metier `itsm:*` ;
 - seuil de confiance ;
-- escalade vers N1 si l'information est insuffisante.
+- escalade vers N1 uniquement apres confirmation utilisateur.
 
 ## Type de RAG cible
 
-L'evolution cible est un RAG hybride puis graphe + vector :
+Le RAG utilise trois familles de signaux :
 
 - recherche vectorielle pour la similarite semantique ;
 - recherche texte pour les mots exacts, codes erreur, noms logiciels et references materiel ;
 - filtres metadata pour la langue, categorie, niveau de support et statut de validation.
 - graphe de connaissances pour relier symptomes, causes, solutions et niveau d'escalade.
 
-Seuls les articles actifs, valides et autorises pour N0 peuvent etre utilises dans les reponses au demandeur.
+Les articles actifs et valides sont prioritaires. Gemini peut ajouter des controles IT courants, mais le prompt lui interdit d'utiliser des sites externes ou de demander des secrets.
 
 ## Strategie de reponse
 
@@ -59,9 +63,10 @@ Seuls les articles actifs, valides et autorises pour N0 peuvent etre utilises da
 2. Identifier les informations manquantes.
 3. Recuperer les articles pertinents.
 4. Verifier la confiance et la pertinence.
-5. Repondre uniquement avec les contenus retrouves.
-6. Demander si le probleme est resolu.
-7. Cloturer ou escalader selon la confirmation.
+5. Sanitiser les donnees sensibles avant appel API.
+6. Generer une reponse francaise avec Gemini.
+7. Demander si le probleme est resolu.
+8. Cloturer ou escalader selon la confirmation utilisateur.
 
 ## Anti-hallucination
 
@@ -69,9 +74,10 @@ Le RAG hybride reduit le risque d'hallucination, mais ne le supprime pas seul. L
 
 - base de connaissances validee ;
 - generation controlee ;
+- masquage emails, noms, IP privees, secrets et identifiants ;
 - seuils de confiance ;
 - citations internes des articles utilises ;
-- escalade vers N1 si l'information est insuffisante ;
+- escalade vers N1 recommandee si l'information est insuffisante, mais jamais automatique ;
 - audit complet des interactions.
 
 ## Exemple de comportement

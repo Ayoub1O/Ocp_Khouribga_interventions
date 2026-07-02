@@ -4,7 +4,7 @@
 
 N0 est l'assistant de premier contact du support IT. Son role est de qualifier l'incident, proposer une procedure documentee lorsque la base de connaissances le permet, puis cloturer la session ou escalader vers N1.
 
-N0 n'est pas un chatbot libre. Il ne doit pas inventer de diagnostic, de procedure ou d'action technique. Toute reponse doit venir d'un contenu interne actif et valide.
+N0 n'est pas un chatbot libre. Il utilise en priorite les contenus internes actifs et valides. Le LLM peut reformuler et proposer des controles courants, mais il ne cree jamais de ticket seul et ne remplace pas la confirmation utilisateur.
 
 ## Flux Fonctionnel
 
@@ -19,7 +19,11 @@ ChatbotController
 ChatbotService
    |
    +--> detection categorie
-   +--> recherche dans les chunks actifs
+   +--> sanitization donnees sensibles
+   +--> recherche vectorielle pgvector
+   +--> recherche mots-cles dans les chunks actifs
+   +--> raisonnement RDF/Jena
+   +--> generation Gemini controlee
    +--> calcul score confiance
    +--> reponse documentee / clarification / recommandation escalade
    |
@@ -55,6 +59,14 @@ n0/controller
 n0/service
   ChatbotService
   KnowledgeBaseService
+  KnowledgeVectorService
+  SemanticGraphService
+
+n0/ai
+  LlmClient
+  GeminiLlmClient
+  SensitiveDataSanitizer
+  ChatbotAnswerGenerator
 
 n0/domain
   ChatbotSession
@@ -160,16 +172,77 @@ Le contenu est ensuite decoupe en chunks d'environ 900 caracteres, de preference
 
 ## Strategie De Recherche
 
-La version actuelle utilise une recherche controlee par :
+La version actuelle utilise une recherche hybride controlee par :
 
 - categorie detectee dans le message utilisateur ;
 - mots-cles de l'article ;
 - type de section ;
+- similarite vectorielle via `pgvector` ;
+- raisonnement Semantic Web avec Apache Jena ;
 - score de confiance.
 
 Les chunks `PROCEDURE` et `VERIFICATION` sont favorises. Les chunks `ESCALADE` sont conserves, mais ne sont pas privilegies comme reponse principale.
 
 Si le score est insuffisant, N0 recommande l'escalade vers N1.
+
+## pgvector Et Embeddings Gemini
+
+Chaque `KnowledgeChunk` peut avoir un embedding stocke dans `knowledge_chunk_embeddings`.
+
+```text
+knowledge_chunks.id
+   |
+   v
+knowledge_chunk_embeddings.chunk_id
+   |
+   v
+embedding vector(768)
+```
+
+Le modele d'embedding par defaut est `gemini-embedding-2` avec une dimension controlee a `768`. Le backend utilise la distance cosinus via l'operateur pgvector `<=>` pour retrouver les chunks proches de la question utilisateur.
+
+Les embeddings sont generes :
+
+- a la creation d'un article ;
+- a l'import d'un document ;
+- a la mise a jour d'un article ;
+- manuellement via `POST /api/knowledge/embeddings/reindex` pour reindexer les chunks existants.
+
+Si Gemini n'est pas configure, le backend continue de fonctionner avec la recherche par mots-cles et categorie.
+
+## Gemini Generation
+
+Gemini est utilise comme generateur de reponse, pas comme source de verite unique.
+
+```text
+Question utilisateur
+   |
+   v
+SensitiveDataSanitizer
+   |
+   v
+Retrieval: pgvector + mots-cles + RDF
+   |
+   v
+Prompt controle
+   |
+   v
+Gemini
+   |
+   v
+Reponse francaise + recommandation eventuelle d'escalade
+```
+
+Donnees masquees avant l'appel API :
+
+- emails ;
+- numeros de telephone ;
+- mots de passe, tokens, secrets et cles API ;
+- IP privees ;
+- identifiants longs comme numeros de serie ;
+- nom et prenom de l'utilisateur connecte.
+
+N0 peut recommander une escalade, mais seul `POST /api/chatbot/sessions/{id}/escalate` cree le ticket N1 apres confirmation utilisateur.
 
 ## Anti-Hallucination
 
@@ -256,9 +329,7 @@ res:N1            = instance de SupportLevel
 
 N0 utilise ce graphe pour ajouter des indices de raisonnement, notamment le niveau d'escalade indique par les sections `ESCALADE`. Le workflow operationnel reste strictement sequentiel : N0 escalade toujours vers N1.
 
-## Evolution Vector + LLM
-
-La structure actuelle prepare l'evolution vers un RAG encore plus avance :
+## Evolution Future
 
 ```text
 KnowledgeChunk
@@ -268,9 +339,9 @@ KnowledgeChunk
 
 Etapes futures :
 
-1. Ajouter `pgvector` pour la similarite semantique.
-2. Ajouter un service d'embeddings pour les chunks.
-3. Combiner recherche mot-cle, recherche vectorielle et graphe RDF.
-4. Ajouter un generateur LLM garde par les chunks et triples recuperes.
+1. Ajouter des documents PDF/HTML avec extraction plus avancee.
+2. Ajouter un score de confiance plus formalise entre vectoriel, mots-cles et graphe.
+3. Ajouter des tests d'evaluation N0 avec questions/reponses attendues.
+4. Ajouter un journal d'audit specifique pour les donnees envoyees au fournisseur LLM.
 
 Cette evolution garde le meme contrat N0. Le changement se fait dans la couche retrieval, pas dans le workflow ticket.

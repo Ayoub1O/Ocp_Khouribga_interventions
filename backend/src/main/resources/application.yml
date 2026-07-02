@@ -33,6 +33,18 @@ server:
   port: ${SERVER_PORT:8080}
 
 app:
+  n0:
+    ai:
+      provider: ${N0_AI_PROVIDER:gemini}
+      enabled: ${N0_AI_ENABLED:false}
+      api-key: ${GEMINI_API_KEY:}
+      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+      generation-model: ${GEMINI_GENERATION_MODEL:gemini-3.5-flash}
+      embedding-model: ${GEMINI_EMBEDDING_MODEL:gemini-embedding-2}
+      embedding-dimension: ${GEMINI_EMBEDDING_DIMENSION:768}
+      max-output-tokens: ${GEMINI_MAX_OUTPUT_TOKENS:700}
+      temperature: ${GEMINI_TEMPERATURE:0.2}
+      vector-search-limit: ${N0_VECTOR_SEARCH_LIMIT:5}
   mail:
     from: ${MAIL_FROM:support-it@company.local}
     frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:4200}

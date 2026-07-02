@@ -2,6 +2,7 @@ package com.pfe.itsm.n0.controller;
 
 import com.pfe.itsm.n0.dto.KnowledgeArticleRequest;
 import com.pfe.itsm.n0.dto.KnowledgeArticleResponse;
+import com.pfe.itsm.n0.dto.EmbeddingReindexResponse;
 import com.pfe.itsm.n0.dto.KnowledgeImportResponse;
 import com.pfe.itsm.n0.service.KnowledgeBaseService;
 import com.pfe.itsm.tickets.domain.TicketCategory;
@@ -65,5 +66,10 @@ public class KnowledgeBaseController {
             @Valid @RequestBody KnowledgeArticleRequest request
     ) {
         return knowledgeBaseService.update(id, request);
+    }
+
+    @PostMapping("/embeddings/reindex")
+    public EmbeddingReindexResponse reindexEmbeddings() {
+        return knowledgeBaseService.reindexEmbeddings();
     }
 }
