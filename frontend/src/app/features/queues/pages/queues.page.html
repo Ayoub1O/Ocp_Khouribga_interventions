@@ -1,0 +1,28 @@
+<header class="page-header">
+  <div>
+    <h1>Files support</h1>
+    <p>Les techniciens adoptent les tickets depuis leur file de niveau.</p>
+  </div>
+</header>
+
+<section class="grid grid-3">
+  @for (queue of queues; track queue.level) {
+    <article class="panel queue">
+      <div class="panel-header">
+        <h2>{{ queue.level }} - {{ queue.title }}</h2>
+        <span class="status-pill status-info">{{ queue.count }} en attente</span>
+      </div>
+      <div class="queue-list">
+        @for (ticket of queue.tickets; track ticket.reference) {
+          <div class="queue-ticket">
+            <strong>{{ ticket.reference }}</strong>
+            <span>{{ ticket.titre }}</span>
+            <button mat-stroked-button type="button">Adopter</button>
+          </div>
+        } @empty {
+          <p>Aucun ticket dans cette file.</p>
+        }
+      </div>
+    </article>
+  }
+</section>

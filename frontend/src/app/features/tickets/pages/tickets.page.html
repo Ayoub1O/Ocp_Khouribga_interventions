@@ -1,0 +1,55 @@
+<header class="page-header">
+  <div>
+    <h1>Tickets</h1>
+    <p>Recherche, priorisation et suivi du cycle de vie incident.</p>
+  </div>
+  <div class="toolbar-actions">
+    <button mat-stroked-button type="button">Importer</button>
+    <button mat-flat-button type="button">Nouveau ticket</button>
+  </div>
+</header>
+
+<section class="panel filters">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Recherche</mat-label>
+    <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Niveau</mat-label>
+    <mat-select [ngModel]="level()" (ngModelChange)="level.set($event)">
+      <mat-option value="TOUS">Tous</mat-option>
+      <mat-option value="N1">N1</mat-option>
+      <mat-option value="N2">N2</mat-option>
+      <mat-option value="N3">N3</mat-option>
+    </mat-select>
+  </mat-form-field>
+</section>
+
+<section class="panel">
+  <table>
+    <thead>
+      <tr>
+        <th>Reference</th>
+        <th>Titre</th>
+        <th>Demandeur</th>
+        <th>Statut</th>
+        <th>Niveau</th>
+        <th>Technicien</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (ticket of tickets(); track ticket.reference) {
+        <tr>
+          <td>{{ ticket.reference }}</td>
+          <td>{{ ticket.titre }}</td>
+          <td>{{ ticket.demandeur }}</td>
+          <td><span class="status-pill status-info">{{ ticket.statut }}</span></td>
+          <td>{{ ticket.niveau }}</td>
+          <td>{{ ticket.technicien || 'Non assigne' }}</td>
+          <td><button mat-button type="button">Ouvrir</button></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

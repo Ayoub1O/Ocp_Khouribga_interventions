@@ -1,0 +1,50 @@
+<header class="page-header">
+  <div>
+    <h1>Assistant N0</h1>
+    <p>Qualification, reponse guidee et escalade vers N1 apres confirmation.</p>
+  </div>
+  <div class="toolbar-actions">
+    <button mat-stroked-button type="button">Confirmer resolution</button>
+    <button mat-flat-button type="button">Escalader N1</button>
+  </div>
+</header>
+
+<section class="chat-layout">
+  <article class="panel conversation">
+    <div class="panel-header">
+      <h2>Session active</h2>
+      <span class="status-pill status-success">OUVERTE</span>
+    </div>
+    <div class="messages">
+      @for (message of messages(); track $index) {
+        <div class="message" [class.user]="message.author === 'user'">
+          <p>{{ message.text }}</p>
+          @if (message.confidence) {
+            <small>Confiance {{ message.confidence | percent }}</small>
+          }
+        </div>
+      }
+    </div>
+    <form class="composer" (ngSubmit)="send()">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Message</mat-label>
+        <input matInput [ngModel]="draft()" (ngModelChange)="draft.set($event)" name="message" />
+      </mat-form-field>
+      <button mat-flat-button type="submit">Envoyer</button>
+    </form>
+  </article>
+
+  <aside class="panel context">
+    <div class="panel-header">
+      <h2>Contexte RAG</h2>
+    </div>
+    <dl>
+      <dt>Categorie</dt>
+      <dd>RESEAU</dd>
+      <dt>Source interne</dt>
+      <dd>Connexion VPN - controles de base v1</dd>
+      <dt>Garde-fou</dt>
+      <dd>Escalade uniquement confirmee par utilisateur</dd>
+    </dl>
+  </aside>
+</section>

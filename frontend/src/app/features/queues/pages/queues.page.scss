@@ -1,0 +1,22 @@
+.queue {
+  min-height: 360px;
+}
+
+.queue-list {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.queue-ticket {
+  border: 1px solid #e7ecf2;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.queue-ticket span {
+  color: var(--muted);
+  font-size: 13px;
+}

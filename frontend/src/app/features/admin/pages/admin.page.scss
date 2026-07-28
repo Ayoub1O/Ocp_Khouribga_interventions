@@ -1,0 +1,16 @@
+.admin-card {
+  display: grid;
+  gap: 12px;
+  min-height: 210px;
+  padding: 18px;
+}
+
+.admin-card h2 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.admin-card p {
+  color: var(--muted);
+  margin: 0;
+}

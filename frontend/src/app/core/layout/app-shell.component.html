@@ -1,0 +1,87 @@
+<mat-sidenav-container class="workspace">
+  <mat-sidenav class="sidebar" mode="side" [opened]="true" [style.width]="navWidth()">
+    <div class="brand" [class.brand-collapsed]="collapsed()">
+      <div class="brand-mark">
+        <svg lucideShieldCheck [size]="24" aria-hidden="true"></svg>
+      </div>
+      @if (!collapsed()) {
+        <div>
+          <strong>OCP Support IT</strong>
+          <span>Exploitation ITSM</span>
+        </div>
+      }
+    </div>
+
+    <nav class="nav-list" aria-label="Navigation principale">
+      @for (item of visibleNavigation(); track item.route) {
+        <a
+          class="nav-item"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+        >
+          @switch (item.icon) {
+            @case ('dashboard') { <svg lucideLayoutDashboard [size]="20" aria-hidden="true"></svg> }
+            @case ('tickets') { <svg lucideTicket [size]="20" aria-hidden="true"></svg> }
+            @case ('queues') { <svg lucideListChecks [size]="20" aria-hidden="true"></svg> }
+            @case ('n0') { <svg lucideBot [size]="20" aria-hidden="true"></svg> }
+            @case ('interventions') { <svg lucideCalendarDays [size]="20" aria-hidden="true"></svg> }
+            @case ('stock') { <svg lucideBoxes [size]="20" aria-hidden="true"></svg> }
+            @case ('admin') { <svg lucideUsers [size]="20" aria-hidden="true"></svg> }
+            @default { <svg lucideChartNoAxesCombined [size]="20" aria-hidden="true"></svg> }
+          }
+          @if (!collapsed()) {
+            <span>{{ item.label }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <button mat-icon-button type="button" (click)="toggleCollapsed()" aria-label="Basculer la navigation">
+        @if (collapsed()) {
+          <svg lucideChevronRight [size]="20" aria-hidden="true"></svg>
+        } @else {
+          <svg lucideChevronLeft [size]="20" aria-hidden="true"></svg>
+        }
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="content">
+    <mat-toolbar class="topbar">
+      <div class="page-title">
+        <span>Plateforme ITSM</span>
+        <strong>Centre operationnel support</strong>
+      </div>
+      <span class="topbar-spacer"></span>
+      <span class="role-pill">{{ currentUser()?.role }}</span>
+      <button mat-icon-button type="button" aria-label="Notifications">
+        <svg lucideBell [size]="21" aria-hidden="true"></svg>
+      </button>
+      <button mat-flat-button type="button" class="primary-action">
+        <svg lucidePlus [size]="18" aria-hidden="true"></svg>
+        Nouveau ticket
+      </button>
+      <button mat-button type="button" [matMenuTriggerFor]="accountMenu">
+        <svg lucideUser [size]="18" aria-hidden="true"></svg>
+        {{ currentUser()?.email }}
+      </button>
+      <mat-menu #accountMenu="matMenu">
+        <button mat-menu-item>
+          <svg lucideClipboardList [size]="18" aria-hidden="true"></svg>
+          Profil et preferences
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="auth.logout()">
+          <svg lucideLogOut [size]="18" aria-hidden="true"></svg>
+          Deconnexion
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <main class="page-shell">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

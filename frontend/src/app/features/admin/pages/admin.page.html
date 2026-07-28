@@ -1,0 +1,16 @@
+<header class="page-header">
+  <div>
+    <h1>Administration</h1>
+    <p>Parametrage de la plateforme, comptes, knowledge base et securite.</p>
+  </div>
+</header>
+
+<section class="grid grid-3">
+  @for (action of actions; track action.title) {
+    <article class="panel admin-card">
+      <h2>{{ action.title }}</h2>
+      <p>{{ action.description }}</p>
+      <button mat-stroked-button type="button">Ouvrir</button>
+    </article>
+  }
+</section>

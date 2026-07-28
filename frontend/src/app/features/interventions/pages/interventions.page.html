@@ -1,0 +1,31 @@
+<header class="page-header">
+  <div>
+    <h1>Interventions</h1>
+    <p>Planification terrain, affectation technicien et suivi du rapport.</p>
+  </div>
+  <div class="toolbar-actions">
+    <button mat-stroked-button type="button">Vue liste</button>
+    <button mat-flat-button type="button">Planifier</button>
+  </div>
+</header>
+
+<section class="intervention-grid">
+  <article class="panel calendar-panel">
+    <full-calendar [options]="calendarOptions"></full-calendar>
+  </article>
+
+  <aside class="panel">
+    <div class="panel-header">
+      <h2>Prochaines interventions</h2>
+    </div>
+    <div class="intervention-list">
+      @for (intervention of interventions; track intervention.id) {
+        <div class="intervention-item">
+          <strong>{{ intervention.id }} - {{ intervention.ticket }}</strong>
+          <span>{{ intervention.technicien }} - {{ intervention.lieu }}</span>
+          <em>{{ intervention.statut }}</em>
+        </div>
+      }
+    </div>
+  </aside>
+</section>

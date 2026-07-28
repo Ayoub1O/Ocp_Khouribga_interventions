@@ -1,0 +1,36 @@
+.intervention-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+.calendar-panel {
+  padding: 14px;
+}
+
+.intervention-list {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.intervention-item {
+  border: 1px solid #e7ecf2;
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+}
+
+.intervention-item span,
+.intervention-item em {
+  color: var(--muted);
+  font-size: 13px;
+  font-style: normal;
+}
+
+@media (max-width: 1100px) {
+  .intervention-grid {
+    grid-template-columns: 1fr;
+  }
+}

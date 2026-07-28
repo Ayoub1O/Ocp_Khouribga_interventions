@@ -1,0 +1,87 @@
+@import './login.page.scss';
+
+/* FORM ROW FOR SIDE-BY-SIDE INPUTS */
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 22px;
+
+  .form-group {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+
+/* PASSWORD STRENGTH CHECKLIST */
+.password-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 22px 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    transition: color 0.2s ease;
+
+    .icon::before {
+      content: "○";
+      color: rgba(255, 255, 255, 0.35);
+      font-weight: bold;
+    }
+
+    &.valid {
+      color: #a6c747;
+
+      .icon::before {
+        content: "✓";
+        color: #a6c747;
+      }
+    }
+  }
+}
+
+/* SUCCESS REGISTRATION PAGE */
+.success-message {
+  text-align: center;
+  color: #ffffff;
+  padding: 20px 0;
+
+  p {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    margin-bottom: 14px;
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  strong {
+    color: #a6c747;
+    font-size: 1.4rem;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .return-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    margin-top: 30px;
+  }
+}
+
+/* RESPONSIVE ADJUSTMENTS */
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 22px;
+    margin-bottom: 0;
+
+    .form-group {
+      margin-bottom: 22px;
+    }
+  }
+}

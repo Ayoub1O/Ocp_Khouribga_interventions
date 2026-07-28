@@ -1,0 +1,30 @@
+<header class="page-header">
+  <div>
+    <h1>Rapports</h1>
+    <p>Indicateurs support, volume incidents, SLA et productivite techniciens.</p>
+  </div>
+  <div class="toolbar-actions">
+    <button mat-stroked-button type="button">PDF</button>
+    <button mat-flat-button type="button">Exporter CSV</button>
+  </div>
+</header>
+
+<section class="grid grid-2">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Resolution hebdomadaire</h2>
+    </div>
+    <div class="chart-box">
+      <canvas baseChart [data]="resolutionChart" type="line"></canvas>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Incidents par categorie</h2>
+    </div>
+    <div class="chart-box">
+      <canvas baseChart [data]="categoryChart" type="bar"></canvas>
+    </div>
+  </article>
+</section>

@@ -1,0 +1,157 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-card-overlay">
+      <h1>Inscription</h1>
+      <p class="subtitle">Créez votre compte OCP</p>
+
+      @if (success()) {
+        <div class="success-message">
+          <p><strong>Compte créé avec succès !</strong></p>
+          <p>Un e-mail de validation vous a été envoyé. Veuillez cliquer sur le lien pour valider votre compte.</p>
+          <a routerLink="/login" class="login-btn return-btn">Se connecter</a>
+        </div>
+      } @else {
+        <form (ngSubmit)="onSubmit(registerForm)" #registerForm="ngForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="prenom">Prénom</label>
+              <div class="input-wrapper">
+                <input
+                  id="prenom"
+                  name="prenom"
+                  type="text"
+                  [(ngModel)]="prenom"
+                  placeholder="Jean"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="nom">Nom</label>
+              <div class="input-wrapper">
+                <input
+                  id="nom"
+                  name="nom"
+                  type="text"
+                  [(ngModel)]="nom"
+                  placeholder="Dupont"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <div class="input-wrapper">
+              <input
+                id="email"
+                name="email"
+                type="email"
+                [(ngModel)]="email"
+                placeholder="jean.dupont@ocpgroup.ma"
+                required
+                email
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <div class="input-wrapper">
+              <input
+                id="password"
+                name="password"
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="password"
+                placeholder="Créer un mot de passe"
+                required
+              />
+              <button
+                type="button"
+                class="toggle-password"
+                (click)="showPassword = !showPassword"
+              >
+                {{ showPassword ? 'Masquer' : 'Voir' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirmer le mot de passe</label>
+            <div class="input-wrapper">
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                [(ngModel)]="confirmPassword"
+                placeholder="Confirmer le mot de passe"
+                required
+              />
+              <button
+                type="button"
+                class="toggle-password"
+                (click)="showConfirmPassword = !showConfirmPassword"
+              >
+                {{ showConfirmPassword ? 'Masquer' : 'Voir' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Password Checklist -->
+          @if (password.length > 0) {
+            <ul class="password-checklist">
+              <li [class.valid]="hasMinLength">
+                <span class="icon"></span> Au moins 12 caractères
+              </li>
+              <li [class.valid]="hasUppercase">
+                <span class="icon"></span> Au moins une lettre majuscule
+              </li>
+              <li [class.valid]="hasLowercase">
+                <span class="icon"></span> Au moins une lettre minuscule
+              </li>
+              <li [class.valid]="hasNumber">
+                <span class="icon"></span> Au moins un chiffre
+              </li>
+              <li [class.valid]="hasSpecial">
+                <span class="icon"></span> Au moins un caractère spécial
+              </li>
+              @if (confirmPassword.length > 0) {
+                <li [class.valid]="passwordsMatch">
+                  <span class="icon"></span> Les mots de passe correspondent
+                </li>
+              }
+            </ul>
+          }
+
+          @if (error()) {
+            <div class="error-message">
+              {{ error() }}
+            </div>
+          }
+
+          <button
+            type="submit"
+            class="login-btn"
+            [disabled]="registerForm.invalid || !isFormValid || loading()"
+          >
+            @if (loading()) {
+              Création du compte...
+            } @else {
+              S'inscrire
+            }
+          </button>
+
+          <div class="divider">
+            <span>ou</span>
+          </div>
+
+          <a routerLink="/login" class="signup-btn">
+            Se connecter
+          </a>
+        </form>
+      }
+    </div>
+  </div>
+</div>

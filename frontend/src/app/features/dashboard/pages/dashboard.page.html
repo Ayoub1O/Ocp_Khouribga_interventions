@@ -1,0 +1,71 @@
+<header class="page-header">
+  <div>
+    <h1>Tableau de bord</h1>
+    <p>Vue operationnelle des incidents, files de support et interventions.</p>
+  </div>
+  <div class="toolbar-actions">
+    <button mat-stroked-button type="button">Exporter</button>
+    <button mat-flat-button type="button">Actualiser</button>
+  </div>
+</header>
+
+<section class="grid grid-4">
+  @for (kpi of kpis; track kpi.label) {
+    <article class="panel metric">
+      <span>{{ kpi.label }}</span>
+      <strong>{{ kpi.value }}</strong>
+      <small>{{ kpi.delta }}</small>
+    </article>
+  }
+</section>
+
+<section class="dashboard-grid">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Repartition par statut</h2>
+      <mat-chip-set><mat-chip>Temps reel</mat-chip></mat-chip-set>
+    </div>
+    <div class="chart-box">
+      <canvas baseChart [data]="statusChart" type="doughnut"></canvas>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Charge par niveau</h2>
+      <mat-chip-set><mat-chip>N1-N3</mat-chip></mat-chip-set>
+    </div>
+    <div class="chart-box">
+      <canvas baseChart [data]="levelChart" type="bar"></canvas>
+    </div>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Tickets prioritaires</h2>
+    <button mat-button type="button">Voir la file</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Reference</th>
+        <th>Incident</th>
+        <th>Niveau</th>
+        <th>Priorite</th>
+        <th>Age</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (ticket of tickets; track ticket.reference) {
+        <tr>
+          <td>{{ ticket.reference }}</td>
+          <td>{{ ticket.titre }}</td>
+          <td>{{ ticket.niveau }}</td>
+          <td><span class="status-pill status-warning">{{ ticket.priorite }}</span></td>
+          <td>{{ ticket.age }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

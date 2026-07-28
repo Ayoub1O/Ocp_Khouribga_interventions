@@ -1,0 +1,59 @@
+<header class="page-header">
+  <div>
+    <h1>Stock</h1>
+    <p>Catalogue pieces, seuils d alerte et sorties liees aux interventions N3.</p>
+  </div>
+  <div class="toolbar-actions">
+    <button mat-stroked-button type="button">Mouvement</button>
+    <button mat-flat-button type="button">Nouvelle piece</button>
+  </div>
+</header>
+
+<section class="grid grid-3">
+  <article class="panel metric">
+    <span>References suivies</span>
+    <strong>{{ spareParts.length }}</strong>
+    <small>catalogue actif</small>
+  </article>
+  <article class="panel metric">
+    <span>Alertes stock</span>
+    <strong>{{ alertCount }}</strong>
+    <small>seuil atteint</small>
+  </article>
+  <article class="panel metric">
+    <span>Sorties du mois</span>
+    <strong>17</strong>
+    <small>interventions N3</small>
+  </article>
+</section>
+
+<section class="panel inventory-table">
+  <table>
+    <thead>
+      <tr>
+        <th>Reference</th>
+        <th>Designation</th>
+        <th>Disponible</th>
+        <th>Seuil</th>
+        <th>Statut</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (part of spareParts; track part.reference) {
+        <tr>
+          <td>{{ part.reference }}</td>
+          <td>{{ part.nom }}</td>
+          <td>{{ part.disponible }}</td>
+          <td>{{ part.seuil }}</td>
+          <td>
+            <span class="status-pill" [class.status-critical]="part.statut === 'ALERTE'" [class.status-success]="part.statut === 'OK'">
+              {{ part.statut }}
+            </span>
+          </td>
+          <td><button mat-button type="button">Details</button></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

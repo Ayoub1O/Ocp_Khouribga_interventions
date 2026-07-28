@@ -1,0 +1,14 @@
+.filters {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(260px, 1fr) 180px;
+  margin-bottom: 16px;
+  padding: 14px;
+}
+
+@media (max-width: 760px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}
