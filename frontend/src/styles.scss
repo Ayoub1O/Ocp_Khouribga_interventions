@@ -1,21 +1,22 @@
 @import '@angular/material/prebuilt-themes/azure-blue.css';
 
 :root {
-  color-scheme: light;
-  --surface: #ffffff;
-  --surface-muted: #f6f7f9;
-  --line: #dde3ea;
-  --text: #202833;
-  --muted: #64748b;
-  --brand: #0f766e;
-  --brand-strong: #0b5f59;
-  --blue: #2563eb;
-  --amber: #b45309;
-  --red: #b91c1c;
-  --green: #166534;
-  font-family: Aptos, "Segoe UI", Calibri, sans-serif;
+  color-scheme: dark;
+  --surface: #031411;
+  --surface-muted: #071814;
+  --surface-card: rgba(13, 38, 31, 0.9);
+  --line: rgba(183, 255, 31, 0.18);
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.66);
+  --brand: #b7ff1f;
+  --brand-soft: #7ed957;
+  --blue: #56a8ff;
+  --amber: #ffd21f;
+  --red: #ff6b6b;
+  font-family: Inter, 'Segoe UI', system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -29,10 +30,7 @@ body {
 }
 
 body {
-  background:
-    linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 32%),
-    linear-gradient(315deg, rgba(37, 99, 235, 0.08), transparent 30%),
-    var(--surface-muted);
+  background: var(--surface);
   color: var(--text);
 }
 
@@ -45,6 +43,7 @@ body {
 }
 
 .page-header h1 {
+  color: #ffffff;
   font-size: 28px;
   line-height: 1.2;
   margin: 0 0 6px;
@@ -67,35 +66,28 @@ body {
   gap: 16px;
 }
 
-.grid-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.grid-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.grid-4 {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
 .panel {
-  background: var(--surface);
+  background: var(--surface-card);
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
 }
 
 .panel-header {
   align-items: center;
-  border-bottom: 1px solid #e7ecf2;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   justify-content: space-between;
   min-height: 58px;
-  padding: 14px 16px;
+  padding: 14px 20px;
 }
 
 .panel-header h2 {
+  color: #ffffff;
   font-size: 16px;
   margin: 0;
 }
@@ -109,11 +101,12 @@ body {
   color: var(--muted);
   display: block;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   margin-bottom: 12px;
 }
 
 .metric strong {
+  color: #ffffff;
   display: block;
   font-size: 34px;
   line-height: 1;
@@ -129,53 +122,63 @@ body {
   border-radius: 999px;
   display: inline-flex;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
-  padding: 7px 10px;
+  padding: 6px 12px;
 }
 
-.status-critical {
-  background: #fee2e2;
-  color: var(--red);
-}
-
-.status-warning {
-  background: #fef3c7;
-  color: var(--amber);
-}
-
-.status-success {
-  background: #dcfce7;
-  color: var(--green);
-}
-
-.status-info {
-  background: #dbeafe;
-  color: var(--blue);
-}
+.status-critical { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.3); }
+.status-warning { background: rgba(255, 210, 31, 0.15); color: #ffd21f; border: 1px solid rgba(255, 210, 31, 0.3); }
+.status-success { background: rgba(126, 217, 87, 0.15); color: #7ed957; border: 1px solid rgba(126, 217, 87, 0.3); }
+.status-info { background: rgba(86, 168, 255, 0.15); color: #56a8ff; border: 1px solid rgba(86, 168, 255, 0.3); }
 
 table {
   border-collapse: collapse;
+  color: rgba(255, 255, 255, 0.85);
   width: 100%;
 }
 
 th {
   color: var(--muted);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   text-align: left;
   text-transform: uppercase;
 }
 
 td,
 th {
-  border-bottom: 1px solid #edf1f5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding: 14px 16px;
   vertical-align: middle;
 }
 
 tr:last-child td {
   border-bottom: 0;
+}
+
+.mat-mdc-menu-panel {
+  background: #071814 !important;
+  border: 1px solid rgba(183, 255, 31, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+.mat-mdc-menu-item {
+  color: rgba(255, 255, 255, 0.86) !important;
+}
+
+.mat-mdc-menu-item:hover {
+  background: rgba(183, 255, 31, 0.1) !important;
+}
+
+.mat-divider {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.mat-mdc-chip {
+  background: rgba(183, 255, 31, 0.12) !important;
+  border: 1px solid rgba(183, 255, 31, 0.25) !important;
+  color: #b7ff1f !important;
 }
 
 @media (max-width: 1100px) {

@@ -1,55 +1,161 @@
-<header class="page-header">
+<section class="tickets-hero">
   <div>
-    <h1>Tickets</h1>
-    <p>Recherche, priorisation et suivi du cycle de vie incident.</p>
+    <span class="eyebrow">{{ isRequester() ? 'Mes demandes' : 'Pilotage tickets' }}</span>
+    <h1>{{ isRequester() ? 'Mes tickets' : 'Tickets' }}</h1>
+    <p>
+      @if (isRequester()) {
+        Suivez uniquement vos demandes et declarez un incident manuellement ou via AssistEX.
+      } @else if (isAdmin()) {
+        Vue globale des tickets de la plateforme, tous niveaux et statuts confondus.
+      } @else {
+        Suivez les tickets qui vous sont assignes.
+      }
+    </p>
   </div>
-  <div class="toolbar-actions">
-    <button mat-stroked-button type="button">Importer</button>
-    <button mat-flat-button type="button">Nouveau ticket</button>
+
+  <div class="ticket-actions">
+    @if (isRequester() || isAdmin()) {
+      <a routerLink="/tickets/new" class="primary-action">
+        <svg lucidePlus [size]="19" aria-hidden="true"></svg>
+        Nouveau ticket manuel
+      </a>
+    }
+    @if (isRequester()) {
+      <a routerLink="/n0" class="ghost-action">
+        <svg lucideBot [size]="18" aria-hidden="true"></svg>
+        AssistEX
+      </a>
+    }
+    <button type="button" class="ghost-action" (click)="load()">
+      <svg lucideRefreshCw [size]="18" aria-hidden="true"></svg>
+      Actualiser
+    </button>
   </div>
-</header>
+</section>
+
+@if (error()) {
+  <section class="notice error">{{ error() }}</section>
+}
+@if (success()) {
+  <section class="notice success">{{ success() }}</section>
+}
 
 <section class="panel filters">
-  <mat-form-field appearance="outline" subscriptSizing="dynamic">
-    <mat-label>Recherche</mat-label>
-    <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" />
-  </mat-form-field>
-  <mat-form-field appearance="outline" subscriptSizing="dynamic">
-    <mat-label>Niveau</mat-label>
-    <mat-select [ngModel]="level()" (ngModelChange)="level.set($event)">
-      <mat-option value="TOUS">Tous</mat-option>
-      <mat-option value="N1">N1</mat-option>
-      <mat-option value="N2">N2</mat-option>
-      <mat-option value="N3">N3</mat-option>
-    </mat-select>
-  </mat-form-field>
+  @if (!isRequester()) {
+    <label>
+      Niveau
+      <select [ngModel]="level()" (ngModelChange)="level.set($event)">
+        <option value="TOUS">Tous</option>
+        <option value="N1">N1</option>
+        <option value="N2">N2</option>
+        <option value="N3">N3</option>
+      </select>
+    </label>
+  }
+  <label>
+    Statut
+    <select [ngModel]="status()" (ngModelChange)="status.set($event)">
+      <option value="TOUS">Tous</option>
+      <option value="OUVERT">Ouvert</option>
+      <option value="EN_COURS">En cours</option>
+      <option value="ESCALADE">Escalade</option>
+      <option value="RESOLU">Resolu</option>
+      <option value="CLOTURE">Cloture</option>
+    </select>
+  </label>
 </section>
 
-<section class="panel">
-  <table>
-    <thead>
-      <tr>
-        <th>Reference</th>
-        <th>Titre</th>
-        <th>Demandeur</th>
-        <th>Statut</th>
-        <th>Niveau</th>
-        <th>Technicien</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (ticket of tickets(); track ticket.reference) {
-        <tr>
-          <td>{{ ticket.reference }}</td>
-          <td>{{ ticket.titre }}</td>
-          <td>{{ ticket.demandeur }}</td>
-          <td><span class="status-pill status-info">{{ ticket.statut }}</span></td>
-          <td>{{ ticket.niveau }}</td>
-          <td>{{ ticket.technicien || 'Non assigne' }}</td>
-          <td><button mat-button type="button">Ouvrir</button></td>
-        </tr>
-      }
-    </tbody>
-  </table>
+<section class="panel tickets-panel">
+  @if (loading()) {
+    <div class="empty-state">Chargement des tickets...</div>
+  } @else {
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Sujet</th>
+            <th>Categorie</th>
+            <th>Priorite</th>
+            <th>Statut</th>
+            <th>Niveau</th>
+            @if (isAdmin()) {
+              <th>Assignation</th>
+            }
+            <th>Contact</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ticket of filteredTickets(); track ticket.id) {
+            <tr>
+              <td class="ref-cell">{{ ticket.reference }}</td>
+              <td>
+                <strong>{{ ticket.titre }}</strong>
+                <small>{{ ticket.description }}</small>
+              </td>
+              <td>{{ ticket.categorie }}</td>
+              <td><span class="priority-pill" [class]="ticket.priorite.toLowerCase()">{{ ticket.priorite }}</span></td>
+              <td><span class="status-badge" [class]="ticket.statut.toLowerCase()">{{ ticket.statut }}</span></td>
+              <td>{{ ticket.niveauCourant }}</td>
+              @if (isAdmin()) {
+                <td>{{ ticket.technicienAssigneId ? 'Assigne' : 'File ouverte' }}</td>
+              }
+              <td>
+                <strong>{{ ticket.demandeurNomComplet }}</strong>
+                <small>{{ ticket.demandeurTelephone || 'Telephone non renseigne' }}</small>
+              </td>
+              <td>
+                <div class="row-actions">
+                  @if (canEscalate(ticket)) {
+                    <button type="button" class="table-action warning" (click)="openAction(ticket, 'ESCALATE')">Escalader</button>
+                  }
+                  @if (canResolve(ticket)) {
+                    <button type="button" class="table-action success" (click)="openAction(ticket, 'RESOLVE')">Resolu</button>
+                  }
+                  @if (canClose(ticket)) {
+                    <button type="button" class="table-action" (click)="openAction(ticket, 'CLOSE')">Cloturer</button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="isAdmin() ? 9 : 8">
+                <div class="empty-state">
+                  <svg lucideTicket [size]="34" aria-hidden="true"></svg>
+                  <strong>Aucun ticket a afficher</strong>
+                  <span>{{ isRequester() ? 'Vos demandes apparaitront ici apres creation.' : 'Aucun ticket ne correspond aux filtres.' }}</span>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
 </section>
+
+@if (selectedTicket() && actionMode()) {
+  <section class="panel action-panel">
+    <header>
+      <div>
+        <span class="eyebrow">{{ selectedTicket()?.reference }}</span>
+        <h2>{{ actionTitle() }}</h2>
+      </div>
+      <button type="button" class="ghost-action compact" (click)="cancelAction()">Annuler</button>
+    </header>
+    <label>
+      Remarque obligatoire
+      <textarea
+        [ngModel]="actionComment()"
+        (ngModelChange)="actionComment.set($event)"
+        [placeholder]="actionPlaceholder()"
+        rows="4"
+      ></textarea>
+    </label>
+    <button type="button" class="primary-action compact" (click)="submitAction()" [disabled]="!actionComment().trim() || actionLoading()">
+      {{ actionLoading() ? 'Traitement...' : 'Confirmer' }}
+    </button>
+  </section>
+}

@@ -57,3 +57,4 @@ app:
     onboarding:
       email-verification-expiration-hours: ${EMAIL_VERIFICATION_EXPIRATION_HOURS:24}
       invitation-expiration-hours: ${INVITATION_EXPIRATION_HOURS:72}
+      password-reset-expiration-minutes: ${PASSWORD_RESET_EXPIRATION_MINUTES:30}

@@ -1,28 +1,82 @@
 <header class="page-header">
   <div>
-    <h1>Files support</h1>
-    <p>Les techniciens adoptent les tickets depuis leur file de niveau.</p>
+    <h1>{{ isAdmin() ? 'Supervision des files' : 'File ' + level() }}</h1>
+    <p>
+      @if (isAdmin()) {
+        Vue globale des files N1, N2 et N3. Les techniciens restent responsables de l adoption.
+      } @else {
+        Adoptez un ticket disponible lorsque vous etes pret a le traiter.
+      }
+    </p>
+  </div>
+  <div class="toolbar-actions">
+    <button mat-stroked-button type="button" (click)="load()">Actualiser</button>
   </div>
 </header>
 
-<section class="grid grid-3">
-  @for (queue of queues; track queue.level) {
-    <article class="panel queue">
-      <div class="panel-header">
-        <h2>{{ queue.level }} - {{ queue.title }}</h2>
-        <span class="status-pill status-info">{{ queue.count }} en attente</span>
-      </div>
-      <div class="queue-list">
-        @for (ticket of queue.tickets; track ticket.reference) {
-          <div class="queue-ticket">
-            <strong>{{ ticket.reference }}</strong>
-            <span>{{ ticket.titre }}</span>
-            <button mat-stroked-button type="button">Adopter</button>
+@if (error()) {
+  <section class="notice error">{{ error() }}</section>
+}
+@if (success()) {
+  <section class="notice success">{{ success() }}</section>
+}
+
+@if (isAdmin()) {
+  <section class="admin-queues">
+    @for (queue of queues(); track queue.level) {
+      <article class="panel queue-panel">
+        <div class="panel-header">
+          <h2>{{ queue.level }} - {{ queue.title }}</h2>
+          <span class="status-pill status-info">{{ queue.tickets.length }} en attente</span>
+        </div>
+
+        @if (loading()) {
+          <p class="empty-state">Chargement des files...</p>
+        } @else {
+          <div class="queue-list">
+            @for (ticket of queue.tickets; track ticket.id) {
+              <article class="queue-ticket">
+                <div>
+                  <strong>{{ ticket.reference }}</strong>
+                  <span>{{ ticket.titre }}</span>
+                  <small>{{ ticket.categorie }} - {{ ticket.priorite }} - {{ ticket.statut }}</small>
+                </div>
+                <em>{{ ticket.demandeurNomComplet }}</em>
+              </article>
+            } @empty {
+              <p class="empty-state">Aucun ticket dans cette file.</p>
+            }
           </div>
+        }
+      </article>
+    }
+  </section>
+} @else {
+  <section class="panel queue-panel">
+    <div class="panel-header">
+      <h2>Tickets disponibles</h2>
+      <span class="status-pill status-info">{{ tickets().length }} en attente</span>
+    </div>
+
+    @if (loading()) {
+      <p class="empty-state">Chargement de la file...</p>
+    } @else {
+      <div class="queue-list">
+        @for (ticket of tickets(); track ticket.id) {
+          <article class="queue-ticket">
+            <div>
+              <strong>{{ ticket.reference }}</strong>
+              <span>{{ ticket.titre }}</span>
+              <small>{{ ticket.categorie }} - {{ ticket.priorite }} - {{ ticket.statut }}</small>
+            </div>
+            <button mat-stroked-button type="button" (click)="claim(ticket)" [disabled]="claimingId() === ticket.id">
+              {{ claimingId() === ticket.id ? 'Adoption...' : 'Adopter' }}
+            </button>
+          </article>
         } @empty {
-          <p>Aucun ticket dans cette file.</p>
+          <p class="empty-state">Aucun ticket dans votre file.</p>
         }
       </div>
-    </article>
-  }
-</section>
+    }
+  </section>
+}

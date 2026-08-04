@@ -1,22 +1,83 @@
-.queue {
-  min-height: 360px;
+.queue-panel {
+  margin-top: 16px;
+}
+
+.admin-queues {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .queue-list {
   display: grid;
-  gap: 10px;
-  padding: 14px;
+  gap: 12px;
+  padding: 18px;
 }
 
 .queue-ticket {
-  border: 1px solid #e7ecf2;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(183, 255, 31, 0.14);
   border-radius: 8px;
-  display: grid;
-  gap: 8px;
-  padding: 12px;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.queue-ticket strong,
+.queue-ticket span,
+.queue-ticket small {
+  display: block;
+}
+
+.queue-ticket strong {
+  color: #ffffff;
 }
 
 .queue-ticket span {
-  color: var(--muted);
-  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+  margin-top: 5px;
+}
+
+.queue-ticket small {
+  color: rgba(255, 255, 255, 0.56);
+  margin-top: 6px;
+}
+
+.queue-ticket em {
+  color: #b7ff1f;
+  font-style: normal;
+  font-weight: 850;
+  text-align: right;
+}
+
+.notice {
+  border-radius: 8px;
+  margin-top: 14px;
+  padding: 13px 16px;
+}
+
+.notice.error {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.28);
+  color: #ffb3b3;
+}
+
+.notice.success {
+  background: rgba(126, 217, 87, 0.12);
+  border: 1px solid rgba(126, 217, 87, 0.28);
+  color: #a9ff77;
+}
+
+.empty-state {
+  color: rgba(255, 255, 255, 0.62);
+  margin: 0;
+  padding: 22px;
+}
+
+@media (max-width: 1100px) {
+  .admin-queues {
+    grid-template-columns: 1fr;
+  }
 }

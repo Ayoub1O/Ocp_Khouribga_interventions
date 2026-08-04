@@ -78,6 +78,21 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
+    public List<TicketResponse> listVisibleTickets() {
+        UserAccount user = currentUserService.currentUser();
+
+        List<Ticket> tickets = switch (user.getRole()) {
+            case ADMIN -> ticketRepository.findAllByOrderByDateDerniereModificationDesc();
+            case DEMANDEUR -> ticketRepository.findByDemandeurIdOrderByDateDerniereModificationDesc(user.getId());
+            case TECH_N1, TECH_N2, TECH_N3 -> ticketRepository.findByTechnicienAssigneIdOrderByDateDerniereModificationDesc(user.getId());
+        };
+
+        return tickets.stream()
+                .map(TicketResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<TicketResponse> listQueue(SupportLevel level) {
         UserAccount user = currentUserService.currentUser();
         requireQueueAccess(user, level);
@@ -138,13 +153,13 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponse resolve(UUID ticketId) {
+    public TicketResponse resolve(UUID ticketId, String commentaire) {
         Ticket ticket = findLockedTicket(ticketId);
         UserAccount acteur = currentUserService.currentUser();
         requireTicketActor(ticket, acteur);
 
         ticket.resolve();
-        addEvent(ticket, acteur, TicketEventType.RESOLU, "Ticket resolu.");
+        addEvent(ticket, acteur, TicketEventType.RESOLU, commentaire);
         TicketResponse response = TicketResponse.from(ticket);
         notificationService.notifyUser(
                 ticket.getDemandeur(),
@@ -159,7 +174,7 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponse close(UUID ticketId) {
+    public TicketResponse close(UUID ticketId, String commentaire) {
         Ticket ticket = findLockedTicket(ticketId);
         UserAccount acteur = currentUserService.currentUser();
         if (acteur.getRole() != UserRole.ADMIN && !ticket.getDemandeur().getId().equals(acteur.getId())) {
@@ -167,7 +182,7 @@ public class TicketService {
         }
 
         ticket.close();
-        addEvent(ticket, acteur, TicketEventType.CLOTURE, "Ticket cloture.");
+        addEvent(ticket, acteur, TicketEventType.CLOTURE, commentaire);
         TicketResponse response = TicketResponse.from(ticket);
         notificationService.publishTicketUpdate(ticket.getId(), response);
         return response;

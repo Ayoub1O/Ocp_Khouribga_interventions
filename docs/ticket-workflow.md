@@ -104,3 +104,27 @@ Effets :
 - l'ancien technicien est libere ;
 - le ticket devient disponible dans la nouvelle file ;
 - la raison d'escalade est historisee.
+
+## Resolution technicien
+
+Un technicien peut marquer comme resolu uniquement un ticket qu'il a adopte et qui est en cours.
+
+```text
+POST /api/tickets/{id}/resolve
+```
+
+La resolution exige une remarque obligatoire : solution appliquee, controles effectues, code ou note d'achevement. Le ticket passe a `RESOLU`, mais il reste en attente de confirmation finale du demandeur.
+
+## Cloture demandeur
+
+La cloture finale appartient au demandeur, sauf action administrateur.
+
+```text
+POST /api/tickets/{id}/close
+```
+
+Le demandeur doit confirmer la resolution avec une remarque ou un feedback. Cette confirmation est ajoutee dans l'historique du ticket.
+
+## Contact demandeur
+
+Les comptes utilisateurs incluent un numero de telephone. Les vues ticket exposent le telephone du demandeur afin que les techniciens puissent appeler pendant le diagnostic, la prise en charge ou une intervention.

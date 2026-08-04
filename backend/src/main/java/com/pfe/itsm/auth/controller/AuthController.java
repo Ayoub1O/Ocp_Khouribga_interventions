@@ -1,11 +1,14 @@
 package com.pfe.itsm.auth.controller;
 
 import com.pfe.itsm.auth.dto.AcceptInvitationRequest;
+import com.pfe.itsm.auth.dto.ChangePasswordRequest;
 import com.pfe.itsm.auth.dto.CurrentUserResponse;
+import com.pfe.itsm.auth.dto.ForgotPasswordRequest;
 import com.pfe.itsm.auth.dto.LoginRequest;
 import com.pfe.itsm.auth.dto.LoginResponse;
 import com.pfe.itsm.auth.dto.RegisterRequest;
 import com.pfe.itsm.auth.dto.RefreshTokenRequest;
+import com.pfe.itsm.auth.dto.ResetPasswordRequest;
 import com.pfe.itsm.auth.dto.TokenPairResponse;
 import com.pfe.itsm.auth.service.AuthService;
 import com.pfe.itsm.common.MessageResponse;
@@ -51,6 +54,24 @@ public class AuthController {
     public MessageResponse acceptInvitation(@Valid @RequestBody AcceptInvitationRequest request) {
         authService.acceptInvitation(request.token(), request.password());
         return new MessageResponse("Invitation acceptee. Vous pouvez vous connecter.");
+    }
+
+    @PostMapping("/forgot-password")
+    public MessageResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return new MessageResponse("Si ce compte existe, un lien de reinitialisation a ete envoye.");
+    }
+
+    @PostMapping("/reset-password")
+    public MessageResponse resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return new MessageResponse("Mot de passe reinitialise. Vous pouvez vous connecter.");
+    }
+
+    @PostMapping("/change-password")
+    public MessageResponse changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(request);
+        return new MessageResponse("Mot de passe mis a jour.");
     }
 
     @PostMapping("/refresh")

@@ -176,4 +176,12 @@ public class Ticket {
     public UserAccount getTechnicienAssigne() {
         return technicienAssigne;
     }
+
+    public Instant getDateCreation() {
+        return dateCreation;
+    }
+
+    public Instant getDateDerniereModification() {
+        return dateDerniereModification;
+    }
 }

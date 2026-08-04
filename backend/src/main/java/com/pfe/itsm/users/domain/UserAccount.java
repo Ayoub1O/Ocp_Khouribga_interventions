@@ -28,6 +28,9 @@ public class UserAccount {
     @Column(nullable = false, unique = true, length = 180)
     private String email;
 
+    @Column(length = 40)
+    private String telephone;
+
     @Column(nullable = false)
     private String passwordHash;
 
@@ -69,6 +72,20 @@ public class UserAccount {
         this.emailVerified = emailVerified;
     }
 
+    public UserAccount(
+            String nom,
+            String prenom,
+            String email,
+            String telephone,
+            String passwordHash,
+            UserRole role,
+            boolean actif,
+            boolean emailVerified
+    ) {
+        this(nom, prenom, email, passwordHash, role, actif, emailVerified);
+        this.telephone = telephone;
+    }
+
     public UUID getId() {
         return id;
     }
@@ -83,6 +100,10 @@ public class UserAccount {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getTelephone() {
+        return telephone;
     }
 
     public String getPasswordHash() {
@@ -119,5 +140,15 @@ public class UserAccount {
 
     public void changerMotDePasse(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public void changerRole(UserRole role) {
+        this.role = role;
+    }
+
+    public void mettreAJourProfil(String nom, String prenom, String telephone) {
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
     }
 }

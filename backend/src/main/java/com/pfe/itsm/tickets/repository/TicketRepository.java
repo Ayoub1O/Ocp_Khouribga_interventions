@@ -23,6 +23,12 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
             List<TicketStatus> statuts
     );
 
+    List<Ticket> findAllByOrderByDateDerniereModificationDesc();
+
+    List<Ticket> findByDemandeurIdOrderByDateDerniereModificationDesc(UUID demandeurId);
+
+    List<Ticket> findByTechnicienAssigneIdOrderByDateDerniereModificationDesc(UUID technicienId);
+
     long countByStatut(TicketStatus statut);
 
     long countByDemandeurId(UUID demandeurId);
@@ -49,4 +55,29 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
 
     @Query("select t.statut, count(t) from Ticket t where t.technicienAssigne.id = :technicienId group by t.statut")
     List<Object[]> countGroupedByStatutForTechnicien(UUID technicienId);
+
+    @Query(
+            value = """
+                    select cast(date_creation at time zone 'UTC' as date) as jour, count(*) as total
+                    from tickets
+                    where date_creation >= now() - interval '6 days'
+                    group by jour
+                    order by jour
+                    """,
+            nativeQuery = true
+    )
+    List<Object[]> countDailyVolumeLastSevenDays();
+
+    @Query(
+            value = """
+                    select cast(date_creation at time zone 'UTC' as date) as jour, count(*) as total
+                    from tickets
+                    where demandeur_id = :demandeurId
+                      and date_creation >= now() - interval '6 days'
+                    group by jour
+                    order by jour
+                    """,
+            nativeQuery = true
+    )
+    List<Object[]> countDailyVolumeLastSevenDaysForDemandeur(UUID demandeurId);
 }

@@ -10,7 +10,7 @@ public record InviteUserRequest(
         @NotBlank @Size(max = 100) String nom,
         @NotBlank @Size(max = 100) String prenom,
         @Email @NotBlank @Size(max = 180) String email,
+        @Size(max = 40) String telephone,
         @NotNull UserRole role
 ) {
 }
-

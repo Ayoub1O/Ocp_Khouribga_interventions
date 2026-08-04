@@ -5,6 +5,7 @@ import com.pfe.itsm.tickets.domain.Ticket;
 import com.pfe.itsm.tickets.domain.TicketCategory;
 import com.pfe.itsm.tickets.domain.TicketPriority;
 import com.pfe.itsm.tickets.domain.TicketStatus;
+import java.time.Instant;
 import java.util.UUID;
 
 public record TicketResponse(
@@ -17,7 +18,11 @@ public record TicketResponse(
         TicketStatus statut,
         SupportLevel niveauCourant,
         UUID demandeurId,
-        UUID technicienAssigneId
+        String demandeurNomComplet,
+        String demandeurTelephone,
+        UUID technicienAssigneId,
+        Instant dateCreation,
+        Instant dateDerniereModification
 ) {
 
     public static TicketResponse from(Ticket ticket) {
@@ -32,8 +37,11 @@ public record TicketResponse(
                 ticket.getStatut(),
                 ticket.getNiveauCourant(),
                 ticket.getDemandeur().getId(),
-                technicienId
+                ticket.getDemandeur().getPrenom() + " " + ticket.getDemandeur().getNom(),
+                ticket.getDemandeur().getTelephone(),
+                technicienId,
+                ticket.getDateCreation(),
+                ticket.getDateDerniereModification()
         );
     }
 }
-

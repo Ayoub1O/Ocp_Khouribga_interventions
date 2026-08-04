@@ -1,9 +1,12 @@
 package com.pfe.itsm.auth.service;
 
 import com.pfe.itsm.auth.dto.CurrentUserResponse;
+import com.pfe.itsm.auth.dto.ChangePasswordRequest;
+import com.pfe.itsm.auth.dto.ForgotPasswordRequest;
 import com.pfe.itsm.auth.dto.RegisterRequest;
 import com.pfe.itsm.auth.dto.LoginRequest;
 import com.pfe.itsm.auth.dto.LoginResponse;
+import com.pfe.itsm.auth.dto.ResetPasswordRequest;
 import com.pfe.itsm.auth.dto.TokenPairResponse;
 import com.pfe.itsm.common.BusinessException;
 import com.pfe.itsm.users.domain.UserRole;
@@ -29,6 +32,7 @@ public class AuthService {
     private final CurrentUserService currentUserService;
     private final EmailVerificationService emailVerificationService;
     private final UserInvitationService userInvitationService;
+    private final PasswordResetService passwordResetService;
     private final PasswordEncoder passwordEncoder;
     private final PasswordPolicy passwordPolicy;
 
@@ -40,6 +44,7 @@ public class AuthService {
             CurrentUserService currentUserService,
             EmailVerificationService emailVerificationService,
             UserInvitationService userInvitationService,
+            PasswordResetService passwordResetService,
             PasswordEncoder passwordEncoder,
             PasswordPolicy passwordPolicy
     ) {
@@ -50,6 +55,7 @@ public class AuthService {
         this.currentUserService = currentUserService;
         this.emailVerificationService = emailVerificationService;
         this.userInvitationService = userInvitationService;
+        this.passwordResetService = passwordResetService;
         this.passwordEncoder = passwordEncoder;
         this.passwordPolicy = passwordPolicy;
     }
@@ -66,6 +72,7 @@ public class AuthService {
                 request.nom().trim(),
                 request.prenom().trim(),
                 email,
+                normalizeOptional(request.telephone()),
                 passwordEncoder.encode(request.password()),
                 UserRole.DEMANDEUR,
                 true,
@@ -103,6 +110,7 @@ public class AuthService {
                 refreshToken.expiresAt(),
                 user.getId(),
                 user.getEmail(),
+                user.getTelephone(),
                 user.getRole()
         );
     }
@@ -126,6 +134,21 @@ public class AuthService {
         refreshTokenService.revoke(rawRefreshToken);
     }
 
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        passwordResetService.requestReset(request.email());
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        passwordResetService.reset(request.token(), request.newPassword());
+    }
+
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        passwordResetService.changeAuthenticatedPassword(request.currentPassword(), request.newPassword());
+    }
+
     @Transactional(readOnly = true)
     public CurrentUserResponse me() {
         return CurrentUserResponse.from(currentUserService.currentUser());
@@ -133,5 +156,9 @@ public class AuthService {
 
     private String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeOptional(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }

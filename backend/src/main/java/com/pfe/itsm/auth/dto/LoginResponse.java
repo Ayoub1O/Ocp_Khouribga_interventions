@@ -12,6 +12,7 @@ public record LoginResponse(
         Instant refreshTokenExpiresAt,
         UUID userId,
         String email,
+        String telephone,
         UserRole role
 ) {
 }

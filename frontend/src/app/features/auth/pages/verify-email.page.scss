@@ -1,4 +1,4 @@
-@import './login.page.scss';
+@use './login.page.scss' as *;
 
 .status-container {
   display: flex;

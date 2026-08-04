@@ -1,0 +1,86 @@
+<section class="profile-hero">
+  <div>
+    <span class="eyebrow">Profil et securite</span>
+    <h1>Compte utilisateur</h1>
+    <p>Consultez votre identite applicative et changez votre mot de passe de maniere securisee.</p>
+  </div>
+</section>
+
+@if (error()) {
+  <div class="notice error">{{ error() }}</div>
+}
+@if (success()) {
+  <div class="notice success">{{ success() }}</div>
+}
+
+<section class="profile-grid">
+  <article class="panel">
+    <header>
+      <span class="panel-kicker">Identite</span>
+      <h2>Informations du compte</h2>
+    </header>
+
+    @if (loading()) {
+      <p class="empty-state">Chargement du profil...</p>
+    } @else {
+      <form class="profile-form" (ngSubmit)="saveProfile(profileNgForm)" #profileNgForm="ngForm">
+        <div class="form-grid">
+          <label>
+            Nom
+            <input name="nom" [(ngModel)]="profileForm.nom" required maxlength="100" />
+          </label>
+          <label>
+            Prenom
+            <input name="prenom" [(ngModel)]="profileForm.prenom" required maxlength="100" />
+          </label>
+        </div>
+
+        <label>
+          Telephone
+          <input name="telephone" type="tel" [(ngModel)]="profileForm.telephone" maxlength="40" />
+        </label>
+
+        <dl class="locked-fields">
+          <dt>Email</dt>
+          <dd>{{ user()?.email }}</dd>
+          <dt>Role</dt>
+          <dd>{{ user()?.role }}</dd>
+        </dl>
+
+        <button type="submit" class="primary-action" [disabled]="profileNgForm.invalid || saving()">
+          {{ saving() ? 'Enregistrement...' : 'Enregistrer le profil' }}
+        </button>
+      </form>
+    }
+  </article>
+
+  <article class="panel">
+    <header>
+      <span class="panel-kicker">Securite</span>
+      <h2>Changer le mot de passe</h2>
+    </header>
+
+    <form class="password-form" (ngSubmit)="changePassword(form)" #form="ngForm">
+      <label>
+        Mot de passe actuel
+        <input name="currentPassword" type="password" [(ngModel)]="passwordForm.currentPassword" required />
+      </label>
+
+      <label>
+        Nouveau mot de passe
+        <input name="newPassword" type="password" [(ngModel)]="passwordForm.newPassword" required minlength="12" />
+      </label>
+
+      <label>
+        Confirmer
+        <input name="confirmPassword" type="password" [(ngModel)]="passwordForm.confirmPassword" required />
+      </label>
+
+      <p class="hint">Minimum 12 caracteres avec majuscule, minuscule, chiffre et caractere special.</p>
+
+      <button type="submit" class="primary-action" [disabled]="form.invalid || saving()">
+        {{ saving() ? 'Mise a jour...' : 'Mettre a jour' }}
+      </button>
+    </form>
+  </article>
+</section>

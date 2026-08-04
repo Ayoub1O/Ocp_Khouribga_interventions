@@ -1,4 +1,4 @@
-@import './login.page.scss';
+@use './login.page.scss' as *;
 
 /* FORM ROW FOR SIDE-BY-SIDE INPUTS */
 .form-row {

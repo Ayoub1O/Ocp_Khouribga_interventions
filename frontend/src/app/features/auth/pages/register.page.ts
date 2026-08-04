@@ -15,6 +15,7 @@ export class RegisterPage {
   nom = '';
   prenom = '';
   email = '';
+  telephone = '';
   password = '';
   confirmPassword = '';
   showPassword = false;
@@ -68,6 +69,7 @@ export class RegisterPage {
       this.nom.trim().length > 0 &&
       this.prenom.trim().length > 0 &&
       this.email.trim().length > 0 &&
+      this.telephone.trim().length > 0 &&
       this.isPasswordValid &&
       this.passwordsMatch
     );
@@ -87,6 +89,7 @@ export class RegisterPage {
         nom: this.nom,
         prenom: this.prenom,
         email: this.email,
+        telephone: this.telephone,
         password: this.password,
       })
       .subscribe({
@@ -97,6 +100,7 @@ export class RegisterPage {
           this.nom = '';
           this.prenom = '';
           this.email = '';
+          this.telephone = '';
           this.password = '';
           this.confirmPassword = '';
         },

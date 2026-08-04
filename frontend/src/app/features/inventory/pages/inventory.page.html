@@ -1,59 +1,161 @@
 <header class="page-header">
   <div>
     <h1>Stock</h1>
-    <p>Catalogue pieces, seuils d alerte et sorties liees aux interventions N3.</p>
+    <p>Consultation pour les techniciens, mouvements et catalogue reserves au N3 et admin.</p>
   </div>
   <div class="toolbar-actions">
-    <button mat-stroked-button type="button">Mouvement</button>
-    <button mat-flat-button type="button">Nouvelle piece</button>
+    <button mat-stroked-button type="button" (click)="load()">Actualiser</button>
+    @if (canManageStock()) {
+      <button mat-flat-button type="button" (click)="newPart()">Nouvelle piece</button>
+    }
   </div>
 </header>
+
+@if (error()) {
+  <section class="notice error">{{ error() }}</section>
+}
+@if (success()) {
+  <section class="notice success">{{ success() }}</section>
+}
 
 <section class="grid grid-3">
   <article class="panel metric">
     <span>References suivies</span>
-    <strong>{{ spareParts.length }}</strong>
+    <strong>{{ activeCount() }}</strong>
     <small>catalogue actif</small>
   </article>
   <article class="panel metric">
     <span>Alertes stock</span>
-    <strong>{{ alertCount }}</strong>
+    <strong>{{ alertCount() }}</strong>
     <small>seuil atteint</small>
   </article>
   <article class="panel metric">
-    <span>Sorties du mois</span>
-    <strong>17</strong>
-    <small>interventions N3</small>
+    <span>Quantite disponible</span>
+    <strong>{{ totalQuantity() }}</strong>
+    <small>toutes references</small>
   </article>
 </section>
 
-<section class="panel inventory-table">
-  <table>
-    <thead>
-      <tr>
-        <th>Reference</th>
-        <th>Designation</th>
-        <th>Disponible</th>
-        <th>Seuil</th>
-        <th>Statut</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (part of spareParts; track part.reference) {
-        <tr>
-          <td>{{ part.reference }}</td>
-          <td>{{ part.nom }}</td>
-          <td>{{ part.disponible }}</td>
-          <td>{{ part.seuil }}</td>
-          <td>
-            <span class="status-pill" [class.status-critical]="part.statut === 'ALERTE'" [class.status-success]="part.statut === 'OK'">
-              {{ part.statut }}
-            </span>
-          </td>
-          <td><button mat-button type="button">Details</button></td>
-        </tr>
+<section class="inventory-layout">
+  <article class="panel inventory-table">
+    <div class="panel-header">
+      <h2>Catalogue pieces</h2>
+      <span class="status-pill status-info">{{ parts().length }} references</span>
+    </div>
+
+    @if (loading()) {
+      <p class="empty-state">Chargement du stock...</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Designation</th>
+            <th>Disponible</th>
+            <th>Seuil</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (part of parts(); track part.id) {
+            <tr (click)="selectPart(part)" [class.selected]="selectedPart()?.id === part.id">
+              <td>{{ part.reference }}</td>
+              <td>
+                <strong>{{ part.nom }}</strong>
+                <small>{{ part.description || 'Sans description' }}</small>
+              </td>
+              <td>{{ part.quantiteDisponible }}</td>
+              <td>{{ part.seuilAlerte }}</td>
+              <td>
+                <span class="status-pill" [class.status-critical]="part.lowStock" [class.status-success]="!part.lowStock">
+                  {{ part.lowStock ? 'ALERTE' : 'OK' }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="empty-row">Aucune piece en stock.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </article>
+
+  <aside class="stock-side">
+    <article class="panel form-panel">
+      <div class="panel-header">
+        <h2>{{ selectedPart() ? 'Fiche piece' : 'Nouvelle piece' }}</h2>
+      </div>
+
+      @if (!canManageStock()) {
+        <p class="empty-state">Lecture seule. Les modifications de stock sont reservees au N3.</p>
       }
-    </tbody>
-  </table>
+
+      <form class="stock-form" (ngSubmit)="savePart()">
+        <label>
+          Reference
+          <input name="reference" [(ngModel)]="partForm.reference" [disabled]="!!selectedPart() || !canManageStock()" required />
+        </label>
+        <label>
+          Designation
+          <input name="nom" [(ngModel)]="partForm.nom" [disabled]="!canManageStock()" required />
+        </label>
+        <label>
+          Description
+          <textarea name="description" [(ngModel)]="partForm.description" [disabled]="!canManageStock()" rows="4"></textarea>
+        </label>
+        @if (!selectedPart()) {
+          <label>
+            Quantite initiale
+            <input name="quantiteInitiale" type="number" min="0" [(ngModel)]="partForm.quantiteInitiale" [disabled]="!canManageStock()" />
+          </label>
+        }
+        <label>
+          Seuil alerte
+          <input name="seuilAlerte" type="number" min="0" [(ngModel)]="partForm.seuilAlerte" [disabled]="!canManageStock()" />
+        </label>
+        @if (selectedPart()) {
+          <label class="check-line">
+            <input type="checkbox" name="actif" [(ngModel)]="partForm.actif" [disabled]="!canManageStock()" />
+            Reference active
+          </label>
+        }
+        @if (canManageStock()) {
+          <button mat-flat-button type="submit" [disabled]="saving()">Enregistrer</button>
+        }
+      </form>
+    </article>
+
+    @if (canManageStock()) {
+      <article class="panel form-panel">
+        <div class="panel-header">
+          <h2>Mouvement stock</h2>
+        </div>
+        <form class="stock-form" (ngSubmit)="createMovement()">
+          <label>
+            Type
+            <select name="type" [(ngModel)]="movementForm.type">
+              <option value="ENTREE">Entree</option>
+              <option value="SORTIE">Sortie</option>
+              <option value="AJUSTEMENT">Ajustement</option>
+            </select>
+          </label>
+          <label>
+            Quantite
+            <input name="quantite" type="number" [(ngModel)]="movementForm.quantite" required />
+          </label>
+          <label>
+            Intervention associee
+            <input name="interventionId" [(ngModel)]="movementForm.interventionId" placeholder="UUID intervention, optionnel" />
+          </label>
+          <label>
+            Commentaire
+            <textarea name="commentaire" [(ngModel)]="movementForm.commentaire" rows="3" required></textarea>
+          </label>
+          <button mat-stroked-button type="submit" [disabled]="!selectedPart() || saving()">Enregistrer mouvement</button>
+        </form>
+      </article>
+    }
+  </aside>
 </section>

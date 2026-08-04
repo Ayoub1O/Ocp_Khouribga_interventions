@@ -56,6 +56,12 @@ public class RefreshTokenService {
         refreshTokenRepository.findByTokenHash(MessageDigestSupport.sha256Base64Url(rawToken))
                 .ifPresent(RefreshToken::revoke);
     }
+
+    @Transactional
+    public void revokeAllFor(UserAccount user) {
+        refreshTokenRepository.revokeActiveTokensFor(user);
+    }
+
     public record IssuedRefreshToken(String token, Instant expiresAt) {
     }
 }

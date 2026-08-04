@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.security.onboarding")
 public record OnboardingProperties(
         long emailVerificationExpirationHours,
-        long invitationExpirationHours
+        long invitationExpirationHours,
+        long passwordResetExpirationMinutes
 ) {
 }
-

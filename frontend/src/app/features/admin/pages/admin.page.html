@@ -1,16 +1,140 @@
-<header class="page-header">
+<section class="admin-hero">
   <div>
-    <h1>Administration</h1>
-    <p>Parametrage de la plateforme, comptes, knowledge base et securite.</p>
+    <span class="eyebrow">Administration</span>
+    <h1>Centre de pilotage ITSM</h1>
+    <p>Suivi global de la plateforme, supervision des techniciens et gestion des invitations securisees.</p>
   </div>
-</header>
-
-<section class="grid grid-3">
-  @for (action of actions; track action.title) {
-    <article class="panel admin-card">
-      <h2>{{ action.title }}</h2>
-      <p>{{ action.description }}</p>
-      <button mat-stroked-button type="button">Ouvrir</button>
-    </article>
-  }
+  <button type="button" class="ghost-button" (click)="load()">Actualiser</button>
 </section>
+
+@if (error()) {
+  <section class="notice error">{{ error() }}</section>
+}
+
+@if (success()) {
+  <section class="notice success">{{ success() }}</section>
+}
+
+@if (!loading() && dashboard()) {
+  <section class="admin-metrics">
+    <article class="metric-card">
+      <span><svg lucideTicket [size]="25" aria-hidden="true"></svg></span>
+      <div><small>Total tickets</small><strong>{{ dashboard()?.totalTickets }}</strong></div>
+    </article>
+    <article class="metric-card amber">
+      <span><svg lucideClock3 [size]="25" aria-hidden="true"></svg></span>
+      <div><small>Tickets ouverts</small><strong>{{ dashboard()?.ticketsOuverts }}</strong></div>
+    </article>
+    <article class="metric-card success">
+      <span><svg lucideCheckCircle2 [size]="25" aria-hidden="true"></svg></span>
+      <div><small>Tickets resolus</small><strong>{{ dashboard()?.ticketsResolus }}</strong></div>
+    </article>
+    <article class="metric-card">
+      <span><svg lucideWrench [size]="25" aria-hidden="true"></svg></span>
+      <div><small>Interventions</small><strong>{{ dashboard()?.totalInterventions }}</strong></div>
+    </article>
+    <article class="metric-card danger">
+      <span><svg lucideShieldCheck [size]="25" aria-hidden="true"></svg></span>
+      <div><small>Stock en alerte</small><strong>{{ dashboard()?.piecesEnAlerte }}</strong></div>
+    </article>
+  </section>
+}
+
+@if (!loading()) {
+  <section class="admin-grid">
+    <article class="panel invite-panel">
+      <header>
+        <h2>Inviter un technicien</h2>
+        <svg lucideMailPlus [size]="22" aria-hidden="true"></svg>
+      </header>
+      <form (ngSubmit)="invite()" #inviteForm="ngForm">
+        <label>
+          Nom
+          <input name="nom" [(ngModel)]="invitation.nom" required maxlength="100" />
+        </label>
+        <label>
+          Prenom
+          <input name="prenom" [(ngModel)]="invitation.prenom" required maxlength="100" />
+        </label>
+        <label>
+          Email professionnel
+          <input name="email" type="email" [(ngModel)]="invitation.email" required maxlength="180" />
+        </label>
+        <label>
+          Telephone
+          <input name="telephone" type="tel" [(ngModel)]="invitation.telephone" maxlength="40" />
+        </label>
+        <label>
+          Niveau support
+          <select name="role" [(ngModel)]="invitation.role" required>
+            <option value="TECH_N1">Technicien N1</option>
+            <option value="TECH_N2">Technicien N2</option>
+            <option value="TECH_N3">Technicien N3</option>
+            <option value="ADMIN">Administrateur</option>
+          </select>
+        </label>
+        <button type="submit" class="primary-button" [disabled]="inviteForm.invalid || saving()">
+          {{ saving() ? 'Envoi...' : 'Envoyer invitation' }}
+        </button>
+      </form>
+    </article>
+
+    <article class="panel accounts-panel">
+      <header>
+        <div>
+          <h2>Comptes techniciens</h2>
+          <p>{{ technicianAccounts().length }} techniciens, {{ pendingInvitations().length }} invitations en attente</p>
+        </div>
+        <svg lucideUsers [size]="22" aria-hidden="true"></svg>
+      </header>
+
+      <div class="account-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Utilisateur</th>
+              <th>Role</th>
+              <th>Etat</th>
+              <th>Email</th>
+              <th>Telephone</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of technicianAccounts(); track user.id) {
+              <tr>
+                <td>
+                  <strong>{{ user.prenom }} {{ user.nom }}</strong>
+                  <small>{{ user.email }}</small>
+                </td>
+                <td><span class="role-pill">{{ user.role }}</span></td>
+                <td>
+                  <span class="state-pill" [class.pending]="!user.actif || !user.emailVerified">
+                    {{ user.actif && user.emailVerified ? 'Actif' : 'Invitation en attente' }}
+                  </span>
+                </td>
+                <td>{{ user.emailVerified ? 'Verifie' : 'Non verifie' }}</td>
+                <td>{{ user.telephone || '-' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="empty-row">Aucun compte technicien pour le moment.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="panel governance-panel">
+      <header>
+        <h2>Gouvernance comptes</h2>
+        <svg lucideUserCog [size]="22" aria-hidden="true"></svg>
+      </header>
+      <div class="governance-list">
+        <div><span>Admins</span><strong>{{ adminAccounts().length }}</strong></div>
+        <div><span>Techniciens actifs</span><strong>{{ activeTechnicians().length }}</strong></div>
+        <div><span>Invitations ouvertes</span><strong>{{ pendingInvitations().length }}</strong></div>
+      </div>
+    </article>
+  </section>
+}
