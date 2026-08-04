@@ -98,12 +98,28 @@ export class DashboardPage implements OnInit {
 
   protected readonly secondaryChartData = signal<ChartConfiguration<'bar'>['data']>({
     labels: [],
-    datasets: [{ label: 'Tickets', data: [], backgroundColor: '#6fbd38', borderRadius: 4 }],
+    datasets: [{
+      label: 'Tickets',
+      data: [],
+      backgroundColor: '#6fbd38',
+      barPercentage: 0.42,
+      categoryPercentage: 0.58,
+      maxBarThickness: 34,
+      borderRadius: 4,
+    }],
   });
 
   protected readonly dailyVolumeChartData = signal<ChartConfiguration<'bar'>['data']>({
     labels: [],
-    datasets: [{ label: 'Tickets', data: [], backgroundColor: '#6fbd38', borderRadius: 4 }],
+    datasets: [{
+      label: 'Tickets',
+      data: [],
+      backgroundColor: '#6fbd38',
+      barPercentage: 0.42,
+      categoryPercentage: 0.58,
+      maxBarThickness: 34,
+      borderRadius: 4,
+    }],
   });
 
   ngOnInit(): void {
@@ -198,6 +214,9 @@ export class DashboardPage implements OnInit {
         backgroundColor: '#6fbd38',
         borderColor: '#b7ff1f',
         borderWidth: 1,
+        barPercentage: 0.42,
+        categoryPercentage: 0.58,
+        maxBarThickness: 34,
         borderRadius: 4,
       }],
     });
@@ -223,6 +242,9 @@ export class DashboardPage implements OnInit {
         backgroundColor: '#6fbd38',
         borderColor: '#b7ff1f',
         borderWidth: 1,
+        barPercentage: 0.42,
+        categoryPercentage: 0.58,
+        maxBarThickness: 34,
         borderRadius: 4,
       }],
     });
@@ -237,6 +259,9 @@ export class DashboardPage implements OnInit {
         backgroundColor: '#6fbd38',
         borderColor: '#b7ff1f',
         borderWidth: 1,
+        barPercentage: 0.42,
+        categoryPercentage: 0.58,
+        maxBarThickness: 34,
         borderRadius: 4,
       }],
     });

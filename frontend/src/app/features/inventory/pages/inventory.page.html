@@ -4,9 +4,9 @@
     <p>Consultation pour les techniciens, mouvements et catalogue reserves au N3 et admin.</p>
   </div>
   <div class="toolbar-actions">
-    <button mat-stroked-button type="button" (click)="load()">Actualiser</button>
+    <button class="ocp-button secondary" type="button" (click)="load()">Actualiser</button>
     @if (canManageStock()) {
-      <button mat-flat-button type="button" (click)="newPart()">Nouvelle piece</button>
+      <button class="ocp-button primary" type="button" (click)="newPart()">Nouvelle piece</button>
     }
   </div>
 </header>
@@ -122,7 +122,7 @@
           </label>
         }
         @if (canManageStock()) {
-          <button mat-flat-button type="submit" [disabled]="saving()">Enregistrer</button>
+          <button class="ocp-button primary full" type="submit" [disabled]="saving()">Enregistrer</button>
         }
       </form>
     </article>
@@ -147,13 +147,29 @@
           </label>
           <label>
             Intervention associee
-            <input name="interventionId" [(ngModel)]="movementForm.interventionId" placeholder="UUID intervention, optionnel" />
+            <select
+              name="interventionId"
+              [(ngModel)]="movementForm.interventionId"
+              [required]="movementForm.type === 'SORTIE' && !isAdmin()"
+            >
+              @if (isAdmin()) {
+                <option value="">Aucune intervention (mouvement administratif)</option>
+              } @else {
+                <option value="">Selectionner une intervention terminee</option>
+              }
+              @for (intervention of completedInterventions(); track intervention.id) {
+                <option [value]="intervention.id">{{ interventionLabel(intervention) }}</option>
+              }
+            </select>
+            @if (!isAdmin() && completedInterventions().length === 0) {
+              <small class="field-hint">Aucune intervention terminee disponible pour votre compte.</small>
+            }
           </label>
           <label>
             Commentaire
             <textarea name="commentaire" [(ngModel)]="movementForm.commentaire" rows="3" required></textarea>
           </label>
-          <button mat-stroked-button type="submit" [disabled]="!selectedPart() || saving()">Enregistrer mouvement</button>
+          <button class="ocp-button secondary full" type="submit" [disabled]="!selectedPart() || saving()">Enregistrer mouvement</button>
         </form>
       </article>
     }

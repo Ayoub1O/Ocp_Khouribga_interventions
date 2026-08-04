@@ -4,28 +4,164 @@
     <p>Planification terrain, affectation technicien et suivi du rapport.</p>
   </div>
   <div class="toolbar-actions">
-    <button mat-stroked-button type="button">Vue liste</button>
-    <button mat-flat-button type="button">Planifier</button>
+    <button class="ocp-button secondary" type="button" (click)="exportInterventions()">
+      <svg lucideDownload [size]="17" aria-hidden="true"></svg>
+      Exporter CSV
+    </button>
+    <button class="ocp-button secondary" type="button" (click)="load()">
+      <svg lucideRefreshCw [size]="17" aria-hidden="true"></svg>
+      Actualiser
+    </button>
   </div>
 </header>
 
+@if (error()) {
+  <section class="notice error">{{ error() }}</section>
+}
+@if (success()) {
+  <section class="notice success">{{ success() }}</section>
+}
+
 <section class="intervention-grid">
   <article class="panel calendar-panel">
-    <full-calendar [options]="calendarOptions"></full-calendar>
+    @if (loading()) {
+      <p class="empty-state">Chargement des interventions...</p>
+    } @else {
+      <full-calendar [options]="calendarOptions()"></full-calendar>
+    }
   </article>
 
-  <aside class="panel">
-    <div class="panel-header">
-      <h2>Prochaines interventions</h2>
-    </div>
-    <div class="intervention-list">
-      @for (intervention of interventions; track intervention.id) {
-        <div class="intervention-item">
-          <strong>{{ intervention.id }} - {{ intervention.ticket }}</strong>
-          <span>{{ intervention.technicien }} - {{ intervention.lieu }}</span>
-          <em>{{ intervention.statut }}</em>
-        </div>
-      }
-    </div>
+  <aside class="side-stack">
+    <article class="panel form-panel">
+      <div class="panel-header">
+        <h2>Planifier</h2>
+      </div>
+      <form class="intervention-form" (ngSubmit)="planIntervention()" #planForm="ngForm">
+        <label>
+          Ticket
+          <select name="ticketId" [(ngModel)]="createForm.ticketId" required>
+            <option value="">Selectionner un ticket</option>
+            @for (ticket of planningTicketOptions(); track ticket.id) {
+              <option [value]="ticket.id">{{ ticket.reference }} - {{ ticket.titre }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Technicien
+          <select name="technicienId" [(ngModel)]="createForm.technicienId" required>
+            <option value="">Selectionner un technicien</option>
+            @for (technician of technicianOptions(); track technician.id) {
+              <option [value]="technician.id">{{ technician.prenom }} {{ technician.nom }} - {{ technician.role }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Debut prevu
+          <input name="dateDebutPrevue" type="datetime-local" [(ngModel)]="createForm.dateDebutPrevue" required />
+        </label>
+
+        <label>
+          Fin prevue
+          <input name="dateFinPrevue" type="datetime-local" [(ngModel)]="createForm.dateFinPrevue" required />
+        </label>
+
+        <label>
+          Lieu
+          <input name="lieu" [(ngModel)]="createForm.lieu" maxlength="255" required />
+        </label>
+
+        <button class="ocp-button primary full" type="submit" [disabled]="planForm.invalid || saving()">
+          <svg lucidePlus [size]="17" aria-hidden="true"></svg>
+          {{ saving() ? 'Traitement...' : 'Planifier' }}
+        </button>
+      </form>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <h2>Prochaines interventions</h2>
+        <span class="status-pill status-info">{{ upcomingInterventions().length }}</span>
+      </div>
+      <div class="intervention-list">
+        @for (intervention of upcomingInterventions(); track intervention.id) {
+          <div class="intervention-item">
+            <div>
+              <strong>{{ ticketLabel(intervention) }} - {{ intervention.ticketTitre || 'Sujet non renseigne' }}</strong>
+              <span>{{ technicianLabel(intervention) }} - {{ intervention.lieu }}</span>
+              <small>{{ intervention.dateDebutPrevue | date:'short' }} → {{ intervention.dateFinPrevue | date:'short' }}</small>
+            </div>
+            <em [class]="intervention.statut.toLowerCase()">{{ intervention.statut }}</em>
+            <div class="row-actions">
+              @if (canStart(intervention)) {
+                <button class="mini-action" type="button" (click)="start(intervention)" [disabled]="saving()">
+                  <svg lucidePlay [size]="13" aria-hidden="true"></svg>
+                  Demarrer
+                </button>
+              }
+              @if (canComplete(intervention)) {
+                <button class="mini-action success" type="button" (click)="openAction(intervention, 'COMPLETE')">Terminer</button>
+              }
+              @if (canCancel(intervention)) {
+                <button class="mini-action danger" type="button" (click)="openAction(intervention, 'CANCEL')">Annuler</button>
+              }
+            </div>
+          </div>
+        } @empty {
+          <p class="empty-state">Aucune intervention prochaine a afficher.</p>
+        }
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <h2>Historique interventions</h2>
+        <span class="status-pill status-success">{{ archivedInterventions().length }}</span>
+      </div>
+      <div class="intervention-list compact-list">
+        @for (intervention of archivedInterventions(); track intervention.id) {
+          <div class="intervention-item">
+            <div>
+              <strong>{{ ticketLabel(intervention) }} - {{ intervention.ticketTitre || 'Sujet non renseigne' }}</strong>
+              <span>{{ technicianLabel(intervention) }} - {{ intervention.lieu }}</span>
+              <small>{{ intervention.dateFinReelle ? (intervention.dateFinReelle | date:'short') : (intervention.dateFinPrevue | date:'short') }}</small>
+            </div>
+            <em [class]="intervention.statut.toLowerCase()">{{ intervention.statut }}</em>
+          </div>
+        } @empty {
+          <p class="empty-state">Aucune intervention terminee ou annulee.</p>
+        }
+      </div>
+    </article>
   </aside>
 </section>
+
+@if (selectedIntervention() && actionMode()) {
+  <section class="panel action-panel">
+    <header>
+      <div>
+        <span class="eyebrow">{{ selectedIntervention()?.ticketReference }}</span>
+        <h2>{{ actionTitle() }}</h2>
+      </div>
+      <button class="ocp-button secondary compact" type="button" (click)="cancelAction()">
+        <svg lucideX [size]="15" aria-hidden="true"></svg>
+        Fermer
+      </button>
+    </header>
+
+    <label>
+      {{ actionLabel() }}
+      <textarea
+        [ngModel]="actionText()"
+        (ngModelChange)="actionText.set($event)"
+        rows="4"
+        placeholder="Saisir les details operationnels..."
+      ></textarea>
+    </label>
+
+    <button class="ocp-button primary compact" type="button" (click)="submitAction()" [disabled]="!actionText().trim() || saving()">
+      Confirmer
+    </button>
+  </section>
+}

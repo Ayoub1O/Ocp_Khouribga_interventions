@@ -4,7 +4,18 @@
     <p>Indicateurs issus du backend, adaptes au role connecte.</p>
   </div>
   <div class="toolbar-actions">
-    <button mat-stroked-button type="button" (click)="load()">Actualiser</button>
+    @if (isAdmin()) {
+      <button class="ocp-button secondary" type="button" (click)="exportTickets()" [disabled]="exporting()">
+        {{ exporting() ? 'Export...' : 'Exporter incidents' }}
+      </button>
+    }
+    <button class="ocp-button secondary" type="button" (click)="exportStock()" [disabled]="exporting()">
+      Exporter stock
+    </button>
+    <button class="ocp-button secondary" type="button" (click)="exportInterventions()" [disabled]="exporting()">
+      Exporter interventions
+    </button>
+    <button class="ocp-button secondary" type="button" (click)="load()">Actualiser</button>
   </div>
 </header>
 

@@ -159,14 +159,24 @@ td small {
 }
 
 .table-action {
+  align-items: center;
   background: rgba(6, 24, 20, 0.76);
   border: 1px solid rgba(183, 255, 31, 0.34);
   border-radius: 8px;
   color: #b7ff1f;
   cursor: pointer;
+  display: inline-flex;
   font-weight: 850;
+  gap: 5px;
   min-height: 34px;
   padding: 0 10px;
+}
+
+.table-action.subtle {
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 12px;
+  min-height: 30px;
 }
 
 .table-action.warning {
@@ -238,6 +248,69 @@ td small {
   padding: 18px;
 }
 
+.detail-panel {
+  display: grid;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 18px;
+}
+
+.detail-panel header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.detail-panel h2 {
+  color: #ffffff;
+  margin: 0;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.detail-grid > div,
+.detail-notes > div {
+  background: rgba(3, 20, 17, 0.56);
+  border: 1px solid rgba(183, 255, 31, 0.12);
+  border-radius: 8px;
+  padding: 13px 14px;
+}
+
+.detail-grid small,
+.detail-notes small {
+  color: rgba(255, 255, 255, 0.52);
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.detail-grid strong {
+  color: #ffffff;
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.detail-notes {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.detail-notes p {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  margin: 0;
+  max-width: none;
+}
+
 .action-panel header {
   align-items: center;
   display: flex;
@@ -249,7 +322,8 @@ td small {
   margin: 0;
 }
 
-.action-panel textarea {
+.action-panel textarea,
+.action-panel input {
   background: rgba(3, 20, 17, 0.88);
   border: 1px solid rgba(183, 255, 31, 0.22);
   border-radius: 8px;
@@ -258,6 +332,9 @@ td small {
   line-height: 1.5;
   outline: none;
   padding: 12px;
+}
+
+.action-panel textarea {
   resize: vertical;
 }
 
@@ -282,6 +359,11 @@ td small {
   .ticket-actions,
   .filters {
     justify-content: flex-start;
+  }
+
+  .detail-grid,
+  .detail-notes {
+    grid-template-columns: 1fr;
   }
 }
 

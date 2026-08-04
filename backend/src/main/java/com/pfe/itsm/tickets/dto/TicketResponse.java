@@ -21,12 +21,25 @@ public record TicketResponse(
         String demandeurNomComplet,
         String demandeurTelephone,
         UUID technicienAssigneId,
+        String technicienAssigneNomComplet,
         Instant dateCreation,
-        Instant dateDerniereModification
+        Instant dateDerniereModification,
+        Instant dateResolution,
+        Instant dateCloture,
+        String codeAchevement,
+        String commentaireResolution,
+        String feedbackCloture
 ) {
 
     public static TicketResponse from(Ticket ticket) {
+        return from(ticket, ticket.getCommentaireResolution(), ticket.getFeedbackCloture());
+    }
+
+    public static TicketResponse from(Ticket ticket, String commentaireResolution, String feedbackCloture) {
         UUID technicienId = ticket.getTechnicienAssigne() == null ? null : ticket.getTechnicienAssigne().getId();
+        String technicienNom = ticket.getTechnicienAssigne() == null
+                ? null
+                : ticket.getTechnicienAssigne().getPrenom() + " " + ticket.getTechnicienAssigne().getNom();
         return new TicketResponse(
                 ticket.getId(),
                 ticket.getReference(),
@@ -40,8 +53,14 @@ public record TicketResponse(
                 ticket.getDemandeur().getPrenom() + " " + ticket.getDemandeur().getNom(),
                 ticket.getDemandeur().getTelephone(),
                 technicienId,
+                technicienNom,
                 ticket.getDateCreation(),
-                ticket.getDateDerniereModification()
+                ticket.getDateDerniereModification(),
+                ticket.getDateResolution(),
+                ticket.getDateCloture(),
+                commentaireResolution,
+                commentaireResolution,
+                feedbackCloture
         );
     }
 }

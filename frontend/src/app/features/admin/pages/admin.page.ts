@@ -14,7 +14,7 @@ import {
 } from '@lucide/angular';
 import { DashboardService } from '../../../core/dashboard/dashboard.service';
 import { AdminDashboardData } from '../../../core/dashboard/dashboard.models';
-import { InviteUserRequest, UserAccount } from '../../../core/users/users.models';
+import { InviteUserRequest, PendingInvitation, UserAccount } from '../../../core/users/users.models';
 import { UsersService } from '../../../core/users/users.service';
 
 @Component({
@@ -40,6 +40,7 @@ export class AdminPage implements OnInit {
 
   protected readonly dashboard = signal<AdminDashboardData | null>(null);
   protected readonly users = signal<UserAccount[]>([]);
+  protected readonly pendingTechnicianInvitations = signal<PendingInvitation[]>([]);
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -59,10 +60,6 @@ export class AdminPage implements OnInit {
 
   protected readonly adminAccounts = computed(() =>
     this.users().filter((user) => user.role === 'ADMIN'),
-  );
-
-  protected readonly pendingInvitations = computed(() =>
-    this.users().filter((user) => !user.actif || !user.emailVerified),
   );
 
   protected readonly activeTechnicians = computed(() =>
@@ -86,6 +83,7 @@ export class AdminPage implements OnInit {
       },
     });
     this.loadUsers();
+    this.loadPendingInvitations();
   }
 
   protected invite(): void {
@@ -105,6 +103,7 @@ export class AdminPage implements OnInit {
         this.invitation = { nom: '', prenom: '', email: '', telephone: '', role: 'TECH_N1' };
         this.saving.set(false);
         this.loadUsers();
+        this.loadPendingInvitations();
       },
       error: (response: HttpErrorResponse) => {
         this.saving.set(false);
@@ -123,6 +122,13 @@ export class AdminPage implements OnInit {
         this.loading.set(false);
         this.error.set('Impossible de charger les comptes utilisateurs.');
       },
+    });
+  }
+
+  private loadPendingInvitations(): void {
+    this.usersService.pendingInvitations().subscribe({
+      next: (invitations) => this.pendingTechnicianInvitations.set(invitations),
+      error: () => this.pendingTechnicianInvitations.set([]),
     });
   }
 }

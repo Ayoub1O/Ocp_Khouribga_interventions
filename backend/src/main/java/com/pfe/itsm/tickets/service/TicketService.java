@@ -88,7 +88,7 @@ public class TicketService {
         };
 
         return tickets.stream()
-                .map(TicketResponse::from)
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -102,7 +102,7 @@ public class TicketService {
                         List.of(TicketStatus.OUVERT, TicketStatus.ESCALADE)
                 )
                 .stream()
-                .map(TicketResponse::from)
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -158,9 +158,9 @@ public class TicketService {
         UserAccount acteur = currentUserService.currentUser();
         requireTicketActor(ticket, acteur);
 
-        ticket.resolve();
+        ticket.resolve(commentaire);
         addEvent(ticket, acteur, TicketEventType.RESOLU, commentaire);
-        TicketResponse response = TicketResponse.from(ticket);
+        TicketResponse response = toResponse(ticket);
         notificationService.notifyUser(
                 ticket.getDemandeur(),
                 NotificationType.TICKET_RESOLU,
@@ -181,9 +181,9 @@ public class TicketService {
             throw new BusinessException("Seul le demandeur ou un administrateur peut cloturer ce ticket.");
         }
 
-        ticket.close();
+        ticket.close(commentaire);
         addEvent(ticket, acteur, TicketEventType.CLOTURE, commentaire);
-        TicketResponse response = TicketResponse.from(ticket);
+        TicketResponse response = toResponse(ticket);
         notificationService.publishTicketUpdate(ticket.getId(), response);
         return response;
     }
@@ -211,6 +211,28 @@ public class TicketService {
 
     private void addEvent(Ticket ticket, UserAccount acteur, TicketEventType type, String commentaire) {
         ticketEventRepository.save(new TicketEvent(ticket, acteur, type, commentaire));
+    }
+
+    private TicketResponse toResponse(Ticket ticket) {
+        String commentaireResolution = firstNonBlank(
+                ticket.getCommentaireResolution(),
+                latestEventComment(ticket.getId(), TicketEventType.RESOLU)
+        );
+        String feedbackCloture = firstNonBlank(
+                ticket.getFeedbackCloture(),
+                latestEventComment(ticket.getId(), TicketEventType.CLOTURE)
+        );
+        return TicketResponse.from(ticket, commentaireResolution, feedbackCloture);
+    }
+
+    private String latestEventComment(UUID ticketId, TicketEventType type) {
+        return ticketEventRepository.findFirstByTicketIdAndTypeOrderByDateEvenementDesc(ticketId, type)
+                .map(TicketEvent::getCommentaire)
+                .orElse(null);
+    }
+
+    private String firstNonBlank(String first, String fallback) {
+        return first == null || first.isBlank() ? fallback : first;
     }
 
     private String nextReference() {

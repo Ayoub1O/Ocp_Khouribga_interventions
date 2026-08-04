@@ -19,3 +19,16 @@ export interface InviteUserRequest {
   telephone?: string;
   role: Exclude<UserRole, 'DEMANDEUR'>;
 }
+
+export interface PendingInvitation {
+  id: string;
+  userId: string;
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone: string | null;
+  invitedRole: Exclude<UserRole, 'DEMANDEUR' | 'ADMIN'>;
+  invitedBy: string;
+  createdAt: string;
+  expiresAt: string;
+}

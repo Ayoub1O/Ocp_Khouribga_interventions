@@ -74,6 +74,15 @@ public class Ticket {
 
     private Instant dateCloture;
 
+    @Column(length = 80)
+    private String codeAchevement;
+
+    @Column(length = 1000)
+    private String commentaireResolution;
+
+    @Column(length = 1000)
+    private String feedbackCloture;
+
     protected Ticket() {
     }
 
@@ -115,21 +124,24 @@ public class Ticket {
         touch();
     }
 
-    public void resolve() {
+    public void resolve(String commentaireResolution) {
         if (statut == TicketStatus.CLOTURE) {
             throw new IllegalStateException("Un ticket cloture ne peut pas etre resolu a nouveau.");
         }
         this.statut = TicketStatus.RESOLU;
         this.dateResolution = Instant.now();
+        this.codeAchevement = commentaireResolution;
+        this.commentaireResolution = commentaireResolution;
         touch();
     }
 
-    public void close() {
+    public void close(String feedbackCloture) {
         if (statut != TicketStatus.RESOLU) {
             throw new IllegalStateException("Seul un ticket resolu peut etre cloture.");
         }
         this.statut = TicketStatus.CLOTURE;
         this.dateCloture = Instant.now();
+        this.feedbackCloture = feedbackCloture;
         touch();
     }
 
@@ -183,5 +195,25 @@ public class Ticket {
 
     public Instant getDateDerniereModification() {
         return dateDerniereModification;
+    }
+
+    public Instant getDateResolution() {
+        return dateResolution;
+    }
+
+    public Instant getDateCloture() {
+        return dateCloture;
+    }
+
+    public String getCodeAchevement() {
+        return codeAchevement;
+    }
+
+    public String getCommentaireResolution() {
+        return commentaireResolution;
+    }
+
+    public String getFeedbackCloture() {
+        return feedbackCloture;
     }
 }

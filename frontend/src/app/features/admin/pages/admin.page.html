@@ -83,7 +83,7 @@
       <header>
         <div>
           <h2>Comptes techniciens</h2>
-          <p>{{ technicianAccounts().length }} techniciens, {{ pendingInvitations().length }} invitations en attente</p>
+          <p>{{ technicianAccounts().length }} techniciens, {{ pendingTechnicianInvitations().length }} invitations en attente</p>
         </div>
         <svg lucideUsers [size]="22" aria-hidden="true"></svg>
       </header>
@@ -125,6 +125,48 @@
       </div>
     </article>
 
+    <article class="panel pending-panel">
+      <header>
+        <div>
+          <h2>Invitations techniciens en attente</h2>
+          <p>{{ pendingTechnicianInvitations().length }} invitations non acceptees</p>
+        </div>
+        <svg lucideClock3 [size]="22" aria-hidden="true"></svg>
+      </header>
+
+      <div class="account-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Invite</th>
+              <th>Role propose</th>
+              <th>Invite par</th>
+              <th>Expiration</th>
+              <th>Telephone</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (invitation of pendingTechnicianInvitations(); track invitation.id) {
+              <tr>
+                <td>
+                  <strong>{{ invitation.prenom }} {{ invitation.nom }}</strong>
+                  <small>{{ invitation.email }}</small>
+                </td>
+                <td><span class="role-pill">{{ invitation.invitedRole }}</span></td>
+                <td>{{ invitation.invitedBy }}</td>
+                <td>{{ invitation.expiresAt | date:'short' }}</td>
+                <td>{{ invitation.telephone || '-' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="empty-row">Aucune invitation technicien en attente.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+
     <article class="panel governance-panel">
       <header>
         <h2>Gouvernance comptes</h2>
@@ -133,7 +175,7 @@
       <div class="governance-list">
         <div><span>Admins</span><strong>{{ adminAccounts().length }}</strong></div>
         <div><span>Techniciens actifs</span><strong>{{ activeTechnicians().length }}</strong></div>
-        <div><span>Invitations ouvertes</span><strong>{{ pendingInvitations().length }}</strong></div>
+        <div><span>Invitations ouvertes</span><strong>{{ pendingTechnicianInvitations().length }}</strong></div>
       </div>
     </article>
   </section>

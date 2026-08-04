@@ -2,6 +2,13 @@
   margin-top: 16px;
 }
 
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 .chart-box {
   height: 360px;
   padding: 20px;

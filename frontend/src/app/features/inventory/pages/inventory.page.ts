@@ -3,6 +3,8 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../../core/auth/auth.service';
+import { Intervention } from '../../../core/interventions/interventions.models';
+import { InterventionsService } from '../../../core/interventions/interventions.service';
 import { InventoryService } from '../../../core/inventory/inventory.service';
 import { SparePart, StockMovementType } from '../../../core/inventory/inventory.models';
 
@@ -15,8 +17,10 @@ import { SparePart, StockMovementType } from '../../../core/inventory/inventory.
 export class InventoryPage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly inventoryService = inject(InventoryService);
+  private readonly interventionsService = inject(InterventionsService);
 
   protected readonly parts = signal<SparePart[]>([]);
+  protected readonly completedInterventions = signal<Intervention[]>([]);
   protected readonly selectedPart = signal<SparePart | null>(null);
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
@@ -27,6 +31,7 @@ export class InventoryPage implements OnInit {
     const role = this.auth.currentUser()?.role;
     return role === 'TECH_N3' || role === 'ADMIN';
   });
+  protected readonly isAdmin = computed(() => this.auth.currentUser()?.role === 'ADMIN');
 
   protected readonly alertCount = computed(() => this.parts().filter((part) => part.lowStock).length);
   protected readonly activeCount = computed(() => this.parts().filter((part) => part.actif).length);
@@ -57,6 +62,7 @@ export class InventoryPage implements OnInit {
   protected load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.loadCompletedInterventions();
 
     this.inventoryService.listParts().subscribe({
       next: (parts) => {
@@ -142,6 +148,11 @@ export class InventoryPage implements OnInit {
       return;
     }
 
+    if (this.movementForm.type === 'SORTIE' && !this.isAdmin() && !this.movementForm.interventionId) {
+      this.error.set('Selectionnez une intervention terminee pour une sortie de stock.');
+      return;
+    }
+
     this.saving.set(true);
     this.error.set(null);
     this.success.set(null);
@@ -160,8 +171,49 @@ export class InventoryPage implements OnInit {
       },
       error: () => {
         this.saving.set(false);
-        this.error.set('Mouvement impossible. Seuls N3 et admin peuvent modifier le stock.');
+        this.error.set('Mouvement impossible. Verifiez la quantite, le commentaire et l intervention si requise.');
       },
     });
+  }
+
+  protected interventionLabel(intervention: Intervention): string {
+    const ticket = intervention.ticketReference || intervention.ticketTitre || intervention.ticketId.slice(0, 8).toUpperCase();
+    const date = this.formatDateTime(intervention.dateFinReelle || intervention.dateFinPrevue);
+    return `${ticket} - ${date} - ${intervention.lieu}`;
+  }
+
+  private loadCompletedInterventions(): void {
+    if (!this.canManageStock()) {
+      this.completedInterventions.set([]);
+      return;
+    }
+
+    this.interventionsService.list().subscribe({
+      next: (interventions) => {
+        this.completedInterventions.set(
+          interventions
+            .filter((intervention) => intervention.statut === 'TERMINEE')
+            .sort((left, right) =>
+              this.timestamp(right.dateFinReelle || right.dateFinPrevue)
+              - this.timestamp(left.dateFinReelle || left.dateFinPrevue),
+            ),
+        );
+      },
+      error: () => this.completedInterventions.set([]),
+    });
+  }
+
+  private timestamp(value: string): number {
+    return new Date(value).getTime();
+  }
+
+  private formatDateTime(value: string): string {
+    const date = new Date(value);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
   }
 }

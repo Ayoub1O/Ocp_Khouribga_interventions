@@ -2,6 +2,7 @@ package com.pfe.itsm.users.controller;
 
 import com.pfe.itsm.users.dto.CreateUserRequest;
 import com.pfe.itsm.users.dto.InviteUserRequest;
+import com.pfe.itsm.users.dto.PendingInvitationResponse;
 import com.pfe.itsm.users.dto.UpdateProfileRequest;
 import com.pfe.itsm.users.dto.UserResponse;
 import com.pfe.itsm.users.service.UserService;
@@ -47,6 +48,12 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> list() {
         return userService.list();
+    }
+
+    @GetMapping("/invitations/pending")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<PendingInvitationResponse> pendingInvitations() {
+        return userService.pendingTechnicianInvitations();
     }
 
     @GetMapping("/{id}")

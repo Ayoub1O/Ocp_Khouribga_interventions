@@ -16,8 +16,14 @@ export interface Ticket {
   demandeurNomComplet: string;
   demandeurTelephone: string | null;
   technicienAssigneId: string | null;
+  technicienAssigneNomComplet: string | null;
   dateCreation: string;
   dateDerniereModification: string;
+  dateResolution: string | null;
+  dateCloture: string | null;
+  codeAchevement: string | null;
+  commentaireResolution: string | null;
+  feedbackCloture: string | null;
 }
 
 export interface CreateTicketRequest {

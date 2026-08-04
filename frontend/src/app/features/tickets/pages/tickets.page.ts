@@ -2,14 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { LucideBot, LucidePlus, LucideRefreshCw, LucideTicket } from '@lucide/angular';
+import { LucideBot, LucideEye, LucidePlus, LucideRefreshCw, LucideTicket, LucideX } from '@lucide/angular';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SupportLevel, Ticket, TicketStatus } from '../../../core/tickets/tickets.models';
 import { TicketsService } from '../../../core/tickets/tickets.service';
 
 @Component({
   selector: 'app-tickets-page',
-  imports: [CommonModule, FormsModule, RouterLink, LucideBot, LucidePlus, LucideRefreshCw, LucideTicket],
+  imports: [CommonModule, FormsModule, RouterLink, LucideBot, LucideEye, LucidePlus, LucideRefreshCw, LucideTicket, LucideX],
   templateUrl: './tickets.page.html',
   styleUrl: './tickets.page.scss',
 })
@@ -25,6 +25,7 @@ export class TicketsPage implements OnInit {
   protected readonly status = signal<TicketStatus | 'TOUS'>('TOUS');
   protected readonly tickets = signal<Ticket[]>([]);
   protected readonly selectedTicket = signal<Ticket | null>(null);
+  protected readonly detailTicket = signal<Ticket | null>(null);
   protected readonly actionMode = signal<'ESCALATE' | 'RESOLVE' | 'CLOSE' | null>(null);
   protected readonly actionComment = signal('');
   protected readonly actionLoading = signal(false);
@@ -134,8 +135,37 @@ export class TicketsPage implements OnInit {
     return this.actionMode() === 'ESCALATE'
       ? 'Description du diagnostic et raison de l escalade...'
       : this.actionMode() === 'RESOLVE'
-        ? 'Code d achevement, solution appliquee, controles effectues...'
+        ? 'Code d achevement / solution appliquee, controles effectues, resultat observe...'
         : 'Confirmation finale du demandeur, feedback ou remarque de cloture...';
+  }
+
+  protected completionComment(ticket: Ticket): string {
+    return ticket.commentaireResolution || ticket.codeAchevement || '-';
+  }
+
+  protected assignmentLabel(ticket: Ticket): string {
+    return ticket.technicienAssigneNomComplet || 'Non assigne';
+  }
+
+  protected resolutionDuration(ticket: Ticket): string {
+    if (!ticket.dateResolution) {
+      return '-';
+    }
+
+    const startedAt = new Date(ticket.dateCreation).getTime();
+    const resolvedAt = new Date(ticket.dateResolution).getTime();
+    const diffMinutes = Math.max(0, Math.round((resolvedAt - startedAt) / 60000));
+    const days = Math.floor(diffMinutes / 1440);
+    const hours = Math.floor((diffMinutes % 1440) / 60);
+    const minutes = diffMinutes % 60;
+
+    if (days > 0) {
+      return `${days}j ${hours}h`;
+    }
+    if (hours > 0) {
+      return `${hours}h ${minutes}min`;
+    }
+    return `${minutes}min`;
   }
 
   private successMessage(mode: 'ESCALATE' | 'RESOLVE' | 'CLOSE', reference: string): string {

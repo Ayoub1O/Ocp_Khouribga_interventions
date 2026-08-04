@@ -3,15 +3,18 @@ package com.pfe.itsm.users.service;
 import com.pfe.itsm.common.BusinessException;
 import com.pfe.itsm.common.ResourceNotFoundException;
 import com.pfe.itsm.auth.security.CurrentUserService;
+import com.pfe.itsm.auth.repository.UserInvitationRepository;
 import com.pfe.itsm.auth.service.SecureTokenGenerator;
 import com.pfe.itsm.auth.service.UserInvitationService;
 import com.pfe.itsm.users.domain.UserAccount;
 import com.pfe.itsm.users.domain.UserRole;
 import com.pfe.itsm.users.dto.CreateUserRequest;
 import com.pfe.itsm.users.dto.InviteUserRequest;
+import com.pfe.itsm.users.dto.PendingInvitationResponse;
 import com.pfe.itsm.users.dto.UpdateProfileRequest;
 import com.pfe.itsm.users.dto.UserResponse;
 import com.pfe.itsm.users.repository.UserAccountRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -27,6 +30,7 @@ public class UserService {
     private final PasswordPolicy passwordPolicy;
     private final CurrentUserService currentUserService;
     private final UserInvitationService userInvitationService;
+    private final UserInvitationRepository userInvitationRepository;
     private final SecureTokenGenerator secureTokenGenerator;
 
     public UserService(
@@ -35,6 +39,7 @@ public class UserService {
             PasswordPolicy passwordPolicy,
             CurrentUserService currentUserService,
             UserInvitationService userInvitationService,
+            UserInvitationRepository userInvitationRepository,
             SecureTokenGenerator secureTokenGenerator
     ) {
         this.userAccountRepository = userAccountRepository;
@@ -42,6 +47,7 @@ public class UserService {
         this.passwordPolicy = passwordPolicy;
         this.currentUserService = currentUserService;
         this.userInvitationService = userInvitationService;
+        this.userInvitationRepository = userInvitationRepository;
         this.secureTokenGenerator = secureTokenGenerator;
     }
 
@@ -111,6 +117,15 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable."));
     }
 
+    @Transactional(readOnly = true)
+    public List<PendingInvitationResponse> pendingTechnicianInvitations() {
+        return userInvitationRepository.findByAcceptedAtIsNullAndRevokedAtIsNullAndExpiresAtAfterOrderByCreatedAtDesc(Instant.now())
+                .stream()
+                .filter(invitation -> isTechnicianRole(invitation.getInvitedRole()))
+                .map(PendingInvitationResponse::from)
+                .toList();
+    }
+
     @Transactional
     public UserResponse updateCurrentProfile(UpdateProfileRequest request) {
         UserAccount user = currentUserService.currentUser();
@@ -128,5 +143,9 @@ public class UserService {
 
     private String normalizeOptional(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private boolean isTechnicianRole(UserRole role) {
+        return role == UserRole.TECH_N1 || role == UserRole.TECH_N2 || role == UserRole.TECH_N3;
     }
 }

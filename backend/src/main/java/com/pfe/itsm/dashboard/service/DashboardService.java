@@ -15,9 +15,12 @@ import com.pfe.itsm.tickets.repository.TicketRepository;
 import com.pfe.itsm.users.domain.UserAccount;
 import com.pfe.itsm.users.domain.UserRole;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.sql.Date;
+import java.util.stream.IntStream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,8 +110,13 @@ public class DashboardService {
     }
 
     private List<DailyTicketVolumeResponse> toDailyVolume(List<Object[]> rows) {
-        return rows.stream()
-                .map(row -> new DailyTicketVolumeResponse(toLocalDate(row[0]), ((Number) row[1]).longValue()))
+        Map<LocalDate, Long> totalsByDate = new HashMap<>();
+        rows.forEach(row -> totalsByDate.put(toLocalDate(row[0]), ((Number) row[1]).longValue()));
+
+        LocalDate startDate = LocalDate.now().minusDays(6);
+        return IntStream.rangeClosed(0, 6)
+                .mapToObj(startDate::plusDays)
+                .map(date -> new DailyTicketVolumeResponse(date, totalsByDate.getOrDefault(date, 0L)))
                 .toList();
     }
 

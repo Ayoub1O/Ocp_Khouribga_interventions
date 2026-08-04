@@ -99,7 +99,7 @@ public class InterventionService {
     public List<InterventionResponse> list() {
         UserAccount user = currentUserService.currentUser();
         if (user.getRole() == UserRole.ADMIN) {
-            return interventionRepository.findAll().stream().map(InterventionResponse::from).toList();
+            return interventionRepository.findAllByOrderByDateDebutPrevueAsc().stream().map(InterventionResponse::from).toList();
         }
         if (user.getRole() == UserRole.TECH_N2 || user.getRole() == UserRole.TECH_N3) {
             return interventionRepository.findByTechnicienIdOrderByDateDebutPrevueAsc(user.getId())

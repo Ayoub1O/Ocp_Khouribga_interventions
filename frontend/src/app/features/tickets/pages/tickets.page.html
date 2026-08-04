@@ -79,9 +79,7 @@
             <th>Priorite</th>
             <th>Statut</th>
             <th>Niveau</th>
-            @if (isAdmin()) {
-              <th>Assignation</th>
-            }
+            <th>Assigne a</th>
             <th>Contact</th>
             <th>Actions</th>
           </tr>
@@ -98,15 +96,17 @@
               <td><span class="priority-pill" [class]="ticket.priorite.toLowerCase()">{{ ticket.priorite }}</span></td>
               <td><span class="status-badge" [class]="ticket.statut.toLowerCase()">{{ ticket.statut }}</span></td>
               <td>{{ ticket.niveauCourant }}</td>
-              @if (isAdmin()) {
-                <td>{{ ticket.technicienAssigneId ? 'Assigne' : 'File ouverte' }}</td>
-              }
+              <td>{{ assignmentLabel(ticket) }}</td>
               <td>
                 <strong>{{ ticket.demandeurNomComplet }}</strong>
                 <small>{{ ticket.demandeurTelephone || 'Telephone non renseigne' }}</small>
               </td>
               <td>
                 <div class="row-actions">
+                  <button type="button" class="table-action subtle" (click)="detailTicket.set(ticket)">
+                    <svg lucideEye [size]="14" aria-hidden="true"></svg>
+                    Details
+                  </button>
                   @if (canEscalate(ticket)) {
                     <button type="button" class="table-action warning" (click)="openAction(ticket, 'ESCALATE')">Escalader</button>
                   }
@@ -121,7 +121,7 @@
             </tr>
           } @empty {
             <tr>
-              <td [attr.colspan]="isAdmin() ? 9 : 8">
+              <td colspan="9">
                 <div class="empty-state">
                   <svg lucideTicket [size]="34" aria-hidden="true"></svg>
                   <strong>Aucun ticket a afficher</strong>
@@ -135,6 +135,87 @@
     </div>
   }
 </section>
+
+@if (detailTicket(); as ticket) {
+  <section class="panel detail-panel">
+    <header>
+      <div>
+        <span class="eyebrow">{{ ticket.reference }}</span>
+        <h2>Details du ticket</h2>
+      </div>
+      <button type="button" class="ghost-action compact" (click)="detailTicket.set(null)">
+        <svg lucideX [size]="16" aria-hidden="true"></svg>
+        Fermer
+      </button>
+    </header>
+
+    <div class="detail-grid">
+      <div>
+        <small>Sujet</small>
+        <strong>{{ ticket.titre }}</strong>
+      </div>
+      <div>
+        <small>Statut</small>
+        <strong>{{ ticket.statut }} · {{ ticket.niveauCourant }}</strong>
+      </div>
+      <div>
+        <small>Categorie / priorite</small>
+        <strong>{{ ticket.categorie }} · {{ ticket.priorite }}</strong>
+      </div>
+      <div>
+        <small>Assigne a</small>
+        <strong>{{ assignmentLabel(ticket) }}</strong>
+      </div>
+      <div>
+        <small>Demandeur</small>
+        <strong>{{ ticket.demandeurNomComplet }}</strong>
+      </div>
+      <div>
+        <small>Telephone</small>
+        <strong>{{ ticket.demandeurTelephone || 'Non renseigne' }}</strong>
+      </div>
+      <div>
+        <small>Cree le</small>
+        <strong>{{ ticket.dateCreation | date:'short' }}</strong>
+      </div>
+      <div>
+        <small>Resolu le</small>
+        <strong>{{ ticket.dateResolution ? (ticket.dateResolution | date:'short') : '-' }}</strong>
+      </div>
+      <div>
+        <small>Cloture le</small>
+        <strong>{{ ticket.dateCloture ? (ticket.dateCloture | date:'short') : '-' }}</strong>
+      </div>
+      <div>
+        <small>Duree de resolution</small>
+        <strong>{{ resolutionDuration(ticket) }}</strong>
+      </div>
+      <div>
+        <small>Code d achevement</small>
+        <strong>{{ completionComment(ticket) }}</strong>
+      </div>
+      <div>
+        <small>Derniere modification</small>
+        <strong>{{ ticket.dateDerniereModification | date:'short' }}</strong>
+      </div>
+    </div>
+
+    <div class="detail-notes">
+      <div>
+        <small>Description</small>
+        <p>{{ ticket.description }}</p>
+      </div>
+      <div>
+        <small>Commentaire de resolution</small>
+        <p>{{ completionComment(ticket) }}</p>
+      </div>
+      <div>
+        <small>Feedback de cloture</small>
+        <p>{{ ticket.feedbackCloture || '-' }}</p>
+      </div>
+    </div>
+  </section>
+}
 
 @if (selectedTicket() && actionMode()) {
   <section class="panel action-panel">
@@ -154,7 +235,12 @@
         rows="4"
       ></textarea>
     </label>
-    <button type="button" class="primary-action compact" (click)="submitAction()" [disabled]="!actionComment().trim() || actionLoading()">
+    <button
+      type="button"
+      class="primary-action compact"
+      (click)="submitAction()"
+      [disabled]="!actionComment().trim() || actionLoading()"
+    >
       {{ actionLoading() ? 'Traitement...' : 'Confirmer' }}
     </button>
   </section>
