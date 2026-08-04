@@ -3,6 +3,7 @@ package com.pfe.itsm.dashboard.service;
 import com.pfe.itsm.auth.security.CurrentUserService;
 import com.pfe.itsm.dashboard.dto.AdminDashboardResponse;
 import com.pfe.itsm.dashboard.dto.CountByLabelResponse;
+import com.pfe.itsm.dashboard.dto.DailyTicketVolumeResponse;
 import com.pfe.itsm.dashboard.dto.RequesterDashboardResponse;
 import com.pfe.itsm.dashboard.dto.TechnicianDashboardResponse;
 import com.pfe.itsm.interventions.domain.InterventionStatus;
@@ -13,8 +14,13 @@ import com.pfe.itsm.tickets.domain.TicketStatus;
 import com.pfe.itsm.tickets.repository.TicketRepository;
 import com.pfe.itsm.users.domain.UserAccount;
 import com.pfe.itsm.users.domain.UserRole;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.sql.Date;
+import java.util.stream.IntStream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,7 +59,8 @@ public class DashboardService {
                 sparePartRepository.countLowStockParts(),
                 toCounts(ticketRepository.countGroupedByStatut()),
                 toCounts(ticketRepository.countGroupedByNiveauCourant()),
-                toCounts(interventionRepository.countGroupedByStatut())
+                toCounts(interventionRepository.countGroupedByStatut()),
+                toDailyVolume(ticketRepository.countDailyVolumeLastSevenDays())
         );
     }
 
@@ -82,7 +89,8 @@ public class DashboardService {
                 ticketRepository.countByDemandeurId(demandeurId),
                 ticketRepository.countByDemandeurIdAndStatut(demandeurId, TicketStatus.OUVERT),
                 ticketRepository.countByDemandeurIdAndStatut(demandeurId, TicketStatus.RESOLU),
-                toCounts(ticketRepository.countGroupedByStatutForDemandeur(demandeurId))
+                toCounts(ticketRepository.countGroupedByStatutForDemandeur(demandeurId)),
+                toDailyVolume(ticketRepository.countDailyVolumeLastSevenDaysForDemandeur(demandeurId))
         );
     }
 
@@ -99,5 +107,26 @@ public class DashboardService {
         return rows.stream()
                 .map(row -> new CountByLabelResponse(String.valueOf(row[0]), (Long) row[1]))
                 .toList();
+    }
+
+    private List<DailyTicketVolumeResponse> toDailyVolume(List<Object[]> rows) {
+        Map<LocalDate, Long> totalsByDate = new HashMap<>();
+        rows.forEach(row -> totalsByDate.put(toLocalDate(row[0]), ((Number) row[1]).longValue()));
+
+        LocalDate startDate = LocalDate.now().minusDays(6);
+        return IntStream.rangeClosed(0, 6)
+                .mapToObj(startDate::plusDays)
+                .map(date -> new DailyTicketVolumeResponse(date, totalsByDate.getOrDefault(date, 0L)))
+                .toList();
+    }
+
+    private LocalDate toLocalDate(Object value) {
+        if (value instanceof LocalDate localDate) {
+            return localDate;
+        }
+        if (value instanceof Date date) {
+            return date.toLocalDate();
+        }
+        throw new IllegalStateException("Type date inattendu dans le volume quotidien: " + value.getClass().getName());
     }
 }

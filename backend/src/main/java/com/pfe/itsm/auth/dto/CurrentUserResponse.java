@@ -9,6 +9,7 @@ public record CurrentUserResponse(
         String nom,
         String prenom,
         String email,
+        String telephone,
         UserRole role
 ) {
 
@@ -18,8 +19,8 @@ public record CurrentUserResponse(
                 user.getNom(),
                 user.getPrenom(),
                 user.getEmail(),
+                user.getTelephone(),
                 user.getRole()
         );
     }
 }
-

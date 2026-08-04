@@ -38,7 +38,7 @@ public class InventoryController {
 
     @PostMapping("/spare-parts")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('TECH_N3', 'ADMIN')")
     public SparePartResponse createPart(@Valid @RequestBody CreateSparePartRequest request) {
         return inventoryService.createPart(request);
     }
@@ -50,7 +50,7 @@ public class InventoryController {
     }
 
     @PatchMapping("/spare-parts/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('TECH_N3', 'ADMIN')")
     public SparePartResponse updatePart(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateSparePartRequest request

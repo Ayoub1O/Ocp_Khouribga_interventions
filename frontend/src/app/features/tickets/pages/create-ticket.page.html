@@ -1,0 +1,60 @@
+<section class="create-hero">
+  <a routerLink="/tickets" class="back-link">
+    <svg lucideArrowLeft [size]="18" aria-hidden="true"></svg>
+    Retour aux tickets
+  </a>
+  <span class="eyebrow">Creation manuelle</span>
+  <h1>Nouveau ticket</h1>
+  <p>Declarez un incident avec les informations necessaires pour l'orienter vers la file N1.</p>
+</section>
+
+@if (error) {
+  <section class="notice error">{{ error }}</section>
+}
+
+<section class="panel form-panel">
+  <form (ngSubmit)="submit()" #ticketForm="ngForm">
+    <label class="wide">
+      Sujet
+      <input name="titre" [(ngModel)]="ticket.titre" required maxlength="180" placeholder="Ex: Acces VPN impossible" />
+    </label>
+
+    <label>
+      Categorie
+      <select name="categorie" [(ngModel)]="ticket.categorie" required>
+        @for (category of categories; track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Priorite
+      <select name="priorite" [(ngModel)]="ticket.priorite" required>
+        @for (priority of priorities; track priority) {
+          <option [value]="priority">{{ priority }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="wide">
+      Description
+      <textarea
+        name="description"
+        [(ngModel)]="ticket.description"
+        required
+        maxlength="4000"
+        rows="8"
+        placeholder="Decrivez le probleme, les messages d'erreur, l'application concernee et les actions deja essayees."
+      ></textarea>
+    </label>
+
+    <div class="form-actions wide">
+      <a routerLink="/n0" class="ghost-action">Utiliser AssistEX</a>
+      <button type="submit" class="primary-action" [disabled]="ticketForm.invalid || saving">
+        <svg lucideSend [size]="18" aria-hidden="true"></svg>
+        {{ saving ? 'Creation...' : 'Creer le ticket' }}
+      </button>
+    </div>
+  </form>
+</section>

@@ -1,0 +1,253 @@
+<section class="knowledge-hero">
+  <div>
+    <span class="eyebrow">Base de connaissances</span>
+    <h1>Sources AssistEX</h1>
+    <p>
+      Importez, validez et indexez les procedures support que le N0 utilise pour repondre avec des sources internes.
+    </p>
+  </div>
+  <div class="hero-actions">
+    <button type="button" class="ghost-action" (click)="reindexEmbeddings()" [disabled]="reindexing()">
+      <svg lucideRefreshCw [size]="18" aria-hidden="true"></svg>
+      {{ reindexing() ? 'Indexation...' : 'Reindexer embeddings' }}
+    </button>
+    <a routerLink="/n0" class="primary-action">
+      <svg lucideBot [size]="18" aria-hidden="true"></svg>
+      Ouvrir AssistEX
+    </a>
+  </div>
+</section>
+
+@if (error()) {
+  <div class="notice error">{{ error() }}</div>
+}
+@if (success()) {
+  <div class="notice success">{{ success() }}</div>
+}
+
+<section class="metric-grid">
+  <article class="metric-card">
+    <svg lucideBookOpen [size]="24" aria-hidden="true"></svg>
+    <span>Articles</span>
+    <strong>{{ articles().length }}</strong>
+  </article>
+  <article class="metric-card">
+    <svg lucideCheckCircle2 [size]="24" aria-hidden="true"></svg>
+    <span>Actifs pour AssistEX</span>
+    <strong>{{ activeArticles().length }}</strong>
+  </article>
+  <article class="metric-card">
+    <svg lucideUpload [size]="24" aria-hidden="true"></svg>
+    <span>Imports documentaires</span>
+    <strong>{{ importedArticles().length }}</strong>
+  </article>
+  <article class="metric-card">
+    <svg lucideDatabase [size]="24" aria-hidden="true"></svg>
+    <span>Categories couvertes</span>
+    <strong>{{ categoriesCount() }}</strong>
+  </article>
+</section>
+
+<section class="knowledge-layout">
+  <article class="panel article-list">
+    <header>
+      <div>
+        <span class="panel-kicker">Corpus valide</span>
+        <h2>Articles disponibles</h2>
+      </div>
+      <button type="button" class="small-action" (click)="newArticle()">Nouvel article</button>
+    </header>
+
+    @if (loading()) {
+      <p class="empty-state">Chargement de la base de connaissances...</p>
+    } @else if (articles().length === 0) {
+      <p class="empty-state">Aucun article. Importez un document ou creez une procedure manuelle.</p>
+    } @else {
+      <div class="article-table">
+        @for (article of articles(); track article.id) {
+          <button
+            type="button"
+            class="article-row"
+            [class.selected]="selectedArticle()?.id === article.id"
+            (click)="selectArticle(article)"
+          >
+            <span>
+              <strong>{{ article.titre }}</strong>
+              <small>{{ categoryLabel(article.categorie) }} · v{{ article.version }}</small>
+            </span>
+            <span class="article-meta">
+              <small>{{ article.sourceType }}</small>
+              <em [class.active]="article.actif">{{ article.actif ? 'Actif' : 'Brouillon' }}</em>
+            </span>
+          </button>
+        }
+      </div>
+    }
+  </article>
+
+  <aside class="side-stack">
+    <article class="panel form-panel">
+      <header>
+        <div>
+          <span class="panel-kicker">Edition</span>
+          <h2>{{ selectedArticle() ? 'Modifier l article' : 'Nouvel article' }}</h2>
+        </div>
+        <svg lucideFileText [size]="24" aria-hidden="true"></svg>
+      </header>
+
+      <form (ngSubmit)="saveArticle()" class="knowledge-form">
+        <label>
+          Titre
+          <input name="titre" [(ngModel)]="articleForm.titre" required />
+        </label>
+
+        <label>
+          Categorie
+          <select name="categorie" [(ngModel)]="articleForm.categorie">
+            @for (category of categories; track category) {
+              <option [ngValue]="category">{{ categoryLabel(category) }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Mots-cles
+          <input name="motsCles" [(ngModel)]="articleForm.motsCles" placeholder="vpn, forticlient, erreur 809" />
+        </label>
+
+        <label>
+          Contenu procedure
+          <textarea name="contenu" [(ngModel)]="articleForm.contenu" rows="9" required></textarea>
+        </label>
+
+        <label class="check-line">
+          <input type="checkbox" name="actif" [(ngModel)]="articleForm.actif" />
+          Actif pour AssistEX
+        </label>
+
+        <button type="submit" class="primary-action full" [disabled]="saving()">
+          <svg lucideSave [size]="18" aria-hidden="true"></svg>
+          {{ saving() ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </form>
+    </article>
+
+    <article class="panel import-panel">
+      <header>
+        <div>
+          <span class="panel-kicker">Ingestion</span>
+          <h2>Importer un document</h2>
+        </div>
+        <svg lucideUpload [size]="24" aria-hidden="true"></svg>
+      </header>
+
+      <div class="knowledge-form">
+        <label>
+          Fichier .txt ou .md
+          <input type="file" accept=".txt,.md,text/plain,text/markdown" (change)="onFileSelected($event)" />
+        </label>
+
+        <label>
+          Categorie
+          <select [(ngModel)]="importForm.categorie" name="importCategorie">
+            @for (category of categories; track category) {
+              <option [ngValue]="category">{{ categoryLabel(category) }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Mots-cles
+          <input [(ngModel)]="importForm.motsCles" name="importMotsCles" placeholder="imprimante, outlook, sap" />
+        </label>
+
+        <button type="button" class="ghost-action full" (click)="importDocument()" [disabled]="!selectedFile() || importing()">
+          <svg lucideUpload [size]="18" aria-hidden="true"></svg>
+          {{ importing() ? 'Import...' : 'Importer et structurer' }}
+        </button>
+      </div>
+    </article>
+  </aside>
+</section>
+
+<section class="semantic-layout">
+  <article class="panel reasoning-panel">
+    <header>
+      <div>
+        <span class="panel-kicker">Semantic Web</span>
+        <h2>Raisonnement RDF</h2>
+      </div>
+      <svg lucideNetwork [size]="24" aria-hidden="true"></svg>
+    </header>
+
+    @if (!selectedArticle()) {
+      <p class="empty-state">Selectionnez un article pour voir le raisonnement.</p>
+    } @else if (!reasoning()) {
+      <p class="empty-state">Aucun raisonnement disponible pour cet article.</p>
+    } @else {
+      <div class="reason-grid">
+        <div>
+          <span>Escalade detectee</span>
+          <strong>{{ reasoning()?.niveauEscalade || 'Aucune' }}</strong>
+        </div>
+        <div>
+          <span>Symptomes</span>
+          <strong>{{ reasoning()?.symptomes?.length || 0 }}</strong>
+        </div>
+        <div>
+          <span>Solutions</span>
+          <strong>{{ reasoning()?.solutions?.length || 0 }}</strong>
+        </div>
+        <div>
+          <span>Verifications</span>
+          <strong>{{ reasoning()?.verifications?.length || 0 }}</strong>
+        </div>
+      </div>
+
+      <div class="semantic-columns">
+        <div>
+          <h3>Solutions extraites</h3>
+          <ul>
+            @for (solution of reasoning()?.solutions ?? []; track solution) {
+              <li>{{ solution }}</li>
+            }
+          </ul>
+        </div>
+        <div>
+          <h3>Regles d escalade</h3>
+          <ul>
+            @for (rule of reasoning()?.reglesEscalade ?? []; track rule) {
+              <li>{{ rule }}</li>
+            } @empty {
+              <li>Pas de regle d escalade explicite.</li>
+            }
+          </ul>
+        </div>
+      </div>
+    }
+  </article>
+
+  <article class="panel triples-panel">
+    <header>
+      <div>
+        <span class="panel-kicker">Triples</span>
+        <h2>Representation Turtle</h2>
+      </div>
+      <button type="button" class="small-action" (click)="loadTriples()" [disabled]="!selectedArticle()">Charger RDF</button>
+    </header>
+
+    @if (triples()) {
+      <pre>{{ triples() }}</pre>
+    } @else {
+      <p class="empty-state">Les triples RDF de l article selectionne apparaitront ici.</p>
+    }
+  </article>
+</section>
+
+<section class="pipeline panel">
+  <svg lucideAlertTriangle [size]="22" aria-hidden="true"></svg>
+  <p>
+    Les imports restent des brouillons tant qu ils ne sont pas valides. AssistEX repond uniquement avec les articles actifs,
+    les chunks indexes, le graphe RDF et une generation Gemini controlee cote backend.
+  </p>
+</section>

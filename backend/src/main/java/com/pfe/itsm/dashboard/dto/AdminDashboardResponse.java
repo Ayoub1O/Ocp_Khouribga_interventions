@@ -10,6 +10,7 @@ public record AdminDashboardResponse(
         long piecesEnAlerte,
         List<CountByLabelResponse> ticketsParStatut,
         List<CountByLabelResponse> ticketsParNiveau,
-        List<CountByLabelResponse> interventionsParStatut
+        List<CountByLabelResponse> interventionsParStatut,
+        List<DailyTicketVolumeResponse> volumeTicketsParJour
 ) {
 }

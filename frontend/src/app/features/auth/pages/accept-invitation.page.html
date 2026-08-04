@@ -1,0 +1,37 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-card-overlay">
+      <h1>Finaliser l invitation</h1>
+      <p class="subtitle">Definissez votre mot de passe pour activer votre role interne.</p>
+
+      <form (ngSubmit)="submit(form)" #form="ngForm">
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <div class="input-wrapper">
+            <input id="password" name="password" type="password" [(ngModel)]="password" required minlength="12" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirmer</label>
+          <div class="input-wrapper">
+            <input id="confirmPassword" name="confirmPassword" type="password" [(ngModel)]="confirmPassword" required />
+          </div>
+        </div>
+
+        @if (message()) {
+          <div class="success-message">{{ message() }}</div>
+        }
+        @if (error()) {
+          <div class="error-message">{{ error() }}</div>
+        }
+
+        <button type="submit" class="login-btn" [disabled]="form.invalid || loading() || !token">
+          {{ loading() ? 'Activation...' : 'Activer le compte' }}
+        </button>
+
+        <a routerLink="/login" class="signup-btn">Retour connexion</a>
+      </form>
+    </div>
+  </div>
+</div>

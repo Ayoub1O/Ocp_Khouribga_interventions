@@ -1,0 +1,153 @@
+.create-hero {
+  background:
+    linear-gradient(90deg, rgba(5, 20, 17, 0.96), rgba(5, 20, 17, 0.62)),
+    url('/assets/brand/ocp-dashboard-bg.png') center right / contain no-repeat;
+  background-color: #051411;
+  border: 1px solid rgba(183, 255, 31, 0.22);
+  border-radius: 8px;
+  margin-bottom: 14px;
+  min-height: 160px;
+  padding: 26px 32px;
+}
+
+.back-link {
+  align-items: center;
+  color: rgba(255, 255, 255, 0.72);
+  display: inline-flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  text-decoration: none;
+}
+
+.eyebrow {
+  color: #b7ff1f;
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+h1 {
+  color: #ffffff;
+  font-size: 30px;
+}
+
+p {
+  color: rgba(255, 255, 255, 0.72);
+  margin-top: 8px;
+}
+
+.notice {
+  border-radius: 8px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+}
+
+.notice.error {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.28);
+  color: #ffb3b3;
+}
+
+.form-panel {
+  padding: 22px;
+}
+
+form {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+label {
+  color: rgba(255, 255, 255, 0.72);
+  display: grid;
+  font-size: 13px;
+  font-weight: 750;
+  gap: 8px;
+}
+
+input,
+select,
+textarea {
+  background: rgba(3, 20, 17, 0.88);
+  border: 1px solid rgba(183, 255, 31, 0.22);
+  border-radius: 8px;
+  color: #ffffff;
+  font: inherit;
+  outline: none;
+  padding: 12px;
+}
+
+input,
+select {
+  min-height: 46px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(183, 255, 31, 0.62);
+  box-shadow: 0 0 0 3px rgba(183, 255, 31, 0.08);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.primary-action,
+.ghost-action {
+  align-items: center;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 850;
+  gap: 9px;
+  min-height: 46px;
+  padding: 0 18px;
+  text-decoration: none;
+}
+
+.primary-action {
+  background: linear-gradient(180deg, #c7ff28, #88c934);
+  border: 1px solid rgba(235, 255, 160, 0.65);
+  color: #06140f;
+}
+
+.primary-action:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+  opacity: 0.55;
+}
+
+.ghost-action {
+  background: rgba(6, 24, 20, 0.76);
+  border: 1px solid rgba(183, 255, 31, 0.45);
+  color: #b7ff1f;
+}
+
+@media (max-width: 760px) {
+  form {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    display: grid;
+  }
+}

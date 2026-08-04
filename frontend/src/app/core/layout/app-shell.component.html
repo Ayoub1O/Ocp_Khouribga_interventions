@@ -1,0 +1,130 @@
+<mat-sidenav-container class="workspace">
+  <mat-sidenav class="sidebar" mode="side" [opened]="true" [style.width]="navWidth()">
+    <div class="brand" [class.brand-collapsed]="collapsed()">
+      <img src="/assets/brand/ocp-logo.png" alt="OCP" class="brand-logo" />
+    </div>
+
+    <button
+      type="button"
+      class="sidebar-toggle"
+      [attr.aria-label]="collapsed() ? 'Afficher le menu' : 'Reduire le menu'"
+      (click)="toggleCollapsed()"
+    >
+      @if (collapsed()) {
+        <svg lucideChevronRight [size]="18" aria-hidden="true"></svg>
+      } @else {
+        <svg lucideChevronLeft [size]="18" aria-hidden="true"></svg>
+      }
+    </button>
+
+    <nav class="nav-list" aria-label="Navigation principale">
+      @for (item of visibleNavigation(); track item.route) {
+        <a
+          class="nav-item"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+        >
+          @switch (item.icon) {
+            @case ('dashboard') { <svg lucideLayoutDashboard [size]="21" aria-hidden="true"></svg> }
+            @case ('tickets') { <svg lucideTicket [size]="21" aria-hidden="true"></svg> }
+            @case ('queues') { <svg lucideClipboardList [size]="21" aria-hidden="true"></svg> }
+            @case ('n0') { <img class="nav-logo" src="/assets/brand/AssistEx_logo.png" alt="" aria-hidden="true" /> }
+            @case ('knowledge') { <svg lucideBookOpen [size]="21" aria-hidden="true"></svg> }
+            @case ('team') { <svg lucideUsers [size]="21" aria-hidden="true"></svg> }
+            @case ('interventions') { <svg lucideCalendarDays [size]="21" aria-hidden="true"></svg> }
+            @case ('stock') { <svg lucideBoxes [size]="21" aria-hidden="true"></svg> }
+            @case ('settings') { <svg lucideSettings [size]="21" aria-hidden="true"></svg> }
+            @default { <svg lucideChartNoAxesCombined [size]="21" aria-hidden="true"></svg> }
+          }
+          @if (!collapsed()) {
+            <span>{{ item.label }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button mat-button type="button" class="collapse-btn" (click)="toggleCollapsed()">
+        @if (collapsed()) {
+          <svg lucideChevronRight [size]="18" aria-hidden="true"></svg>
+        } @else {
+          <svg lucideChevronLeft [size]="18" aria-hidden="true"></svg>
+        }
+        @if (!collapsed()) {
+          <span>Reduire le menu</span>
+        }
+      </button>
+    </div>
+
+    <mat-menu #accountMenu="matMenu">
+      <button mat-menu-item routerLink="/profile">
+        <svg lucideClipboardList [size]="18" aria-hidden="true"></svg>
+        Profil et securite
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="auth.logout()">
+        <svg lucideLogOut [size]="18" aria-hidden="true"></svg>
+        Deconnexion
+      </button>
+    </mat-menu>
+
+    <mat-menu #notificationsMenu="matMenu" class="notifications-menu" xPosition="before" yPosition="below" [overlapTrigger]="false">
+      <div class="notifications-panel" (click)="$event.stopPropagation()">
+        <header>
+          <strong>Notifications</strong>
+          <button type="button" class="menu-link" (click)="loadNotifications()">Actualiser</button>
+        </header>
+
+        @if (notificationsLoading()) {
+          <p class="notification-empty">Chargement...</p>
+        } @else {
+          <div class="notification-list">
+            @for (notification of notifications().slice(0, 8); track notification.id) {
+              <button
+                type="button"
+                class="notification-item"
+                [class.unread]="!notification.readAt"
+                (click)="openNotification(notification)"
+              >
+                <span>{{ notification.title }}</span>
+                <small>{{ notification.message }}</small>
+                <em>{{ notification.createdAt | date:'short' }}</em>
+              </button>
+            } @empty {
+              <p class="notification-empty">Aucune notification.</p>
+            }
+          </div>
+        }
+      </div>
+    </mat-menu>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="content">
+    <header class="topbar">
+      <div></div>
+      <div class="topbar-actions">
+        <button type="button" class="icon-button" aria-label="Notifications" [matMenuTriggerFor]="notificationsMenu">
+          <svg lucideBell [size]="20" aria-hidden="true"></svg>
+          @if (unreadCount() > 0) {
+            <span class="notification-dot">{{ unreadCount() }}</span>
+          }
+        </button>
+        <button type="button" class="account-button" [matMenuTriggerFor]="accountMenu">
+          <span class="user-avatar small">
+            <svg lucideUser [size]="17" aria-hidden="true"></svg>
+          </span>
+          <span class="account-copy">
+            <strong>{{ currentUser()?.email }}</strong>
+            <small>{{ currentUser()?.role }}</small>
+          </span>
+          <svg class="account-chevron" lucideChevronRight [size]="15" aria-hidden="true"></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

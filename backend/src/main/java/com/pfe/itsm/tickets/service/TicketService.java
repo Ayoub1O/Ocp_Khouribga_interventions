@@ -78,6 +78,21 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
+    public List<TicketResponse> listVisibleTickets() {
+        UserAccount user = currentUserService.currentUser();
+
+        List<Ticket> tickets = switch (user.getRole()) {
+            case ADMIN -> ticketRepository.findAllByOrderByDateDerniereModificationDesc();
+            case DEMANDEUR -> ticketRepository.findByDemandeurIdOrderByDateDerniereModificationDesc(user.getId());
+            case TECH_N1, TECH_N2, TECH_N3 -> ticketRepository.findByTechnicienAssigneIdOrderByDateDerniereModificationDesc(user.getId());
+        };
+
+        return tickets.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<TicketResponse> listQueue(SupportLevel level) {
         UserAccount user = currentUserService.currentUser();
         requireQueueAccess(user, level);
@@ -87,7 +102,7 @@ public class TicketService {
                         List.of(TicketStatus.OUVERT, TicketStatus.ESCALADE)
                 )
                 .stream()
-                .map(TicketResponse::from)
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -138,14 +153,14 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponse resolve(UUID ticketId) {
+    public TicketResponse resolve(UUID ticketId, String commentaire) {
         Ticket ticket = findLockedTicket(ticketId);
         UserAccount acteur = currentUserService.currentUser();
         requireTicketActor(ticket, acteur);
 
-        ticket.resolve();
-        addEvent(ticket, acteur, TicketEventType.RESOLU, "Ticket resolu.");
-        TicketResponse response = TicketResponse.from(ticket);
+        ticket.resolve(commentaire);
+        addEvent(ticket, acteur, TicketEventType.RESOLU, commentaire);
+        TicketResponse response = toResponse(ticket);
         notificationService.notifyUser(
                 ticket.getDemandeur(),
                 NotificationType.TICKET_RESOLU,
@@ -159,16 +174,16 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponse close(UUID ticketId) {
+    public TicketResponse close(UUID ticketId, String commentaire) {
         Ticket ticket = findLockedTicket(ticketId);
         UserAccount acteur = currentUserService.currentUser();
         if (acteur.getRole() != UserRole.ADMIN && !ticket.getDemandeur().getId().equals(acteur.getId())) {
             throw new BusinessException("Seul le demandeur ou un administrateur peut cloturer ce ticket.");
         }
 
-        ticket.close();
-        addEvent(ticket, acteur, TicketEventType.CLOTURE, "Ticket cloture.");
-        TicketResponse response = TicketResponse.from(ticket);
+        ticket.close(commentaire);
+        addEvent(ticket, acteur, TicketEventType.CLOTURE, commentaire);
+        TicketResponse response = toResponse(ticket);
         notificationService.publishTicketUpdate(ticket.getId(), response);
         return response;
     }
@@ -196,6 +211,28 @@ public class TicketService {
 
     private void addEvent(Ticket ticket, UserAccount acteur, TicketEventType type, String commentaire) {
         ticketEventRepository.save(new TicketEvent(ticket, acteur, type, commentaire));
+    }
+
+    private TicketResponse toResponse(Ticket ticket) {
+        String commentaireResolution = firstNonBlank(
+                ticket.getCommentaireResolution(),
+                latestEventComment(ticket.getId(), TicketEventType.RESOLU)
+        );
+        String feedbackCloture = firstNonBlank(
+                ticket.getFeedbackCloture(),
+                latestEventComment(ticket.getId(), TicketEventType.CLOTURE)
+        );
+        return TicketResponse.from(ticket, commentaireResolution, feedbackCloture);
+    }
+
+    private String latestEventComment(UUID ticketId, TicketEventType type) {
+        return ticketEventRepository.findFirstByTicketIdAndTypeOrderByDateEvenementDesc(ticketId, type)
+                .map(TicketEvent::getCommentaire)
+                .orElse(null);
+    }
+
+    private String firstNonBlank(String first, String fallback) {
+        return first == null || first.isBlank() ? fallback : first;
     }
 
     private String nextReference() {

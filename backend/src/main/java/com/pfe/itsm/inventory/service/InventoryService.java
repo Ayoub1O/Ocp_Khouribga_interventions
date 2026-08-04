@@ -123,7 +123,7 @@ public class InventoryService {
             }
             case SORTIE -> {
                 requireN3OrAdmin(actor);
-                if (intervention == null) {
+                if (intervention == null && actor.getRole() != UserRole.ADMIN) {
                     throw new BusinessException("Une sortie de stock doit etre liee a une intervention.");
                 }
                 part.consumeStock(request.quantite());

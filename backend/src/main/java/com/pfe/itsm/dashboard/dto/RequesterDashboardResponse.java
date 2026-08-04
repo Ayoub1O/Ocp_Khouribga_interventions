@@ -6,6 +6,7 @@ public record RequesterDashboardResponse(
         long totalTickets,
         long ticketsOuverts,
         long ticketsResolus,
-        List<CountByLabelResponse> ticketsParStatut
+        List<CountByLabelResponse> ticketsParStatut,
+        List<DailyTicketVolumeResponse> volumeTicketsParJour
 ) {
 }

@@ -1,0 +1,213 @@
+<section class="dashboard-hero">
+  <div class="hero-copy">
+    <span class="eyebrow">Espace {{ userRole }}</span>
+    <h1>Bonjour, {{ currentUser()?.email }}</h1>
+    <p>
+      @if (isRequester) {
+        Bienvenue sur votre espace OCP. Declarez un incident ou consultez l'etat de vos demandes.
+      } @else if (isTechnician) {
+        Suivez votre file de traitement, vos interventions et les alertes de stock operationnelles.
+      } @else {
+        Supervisez les tickets, interventions, equipes et indicateurs de service ITSM OCP.
+      }
+    </p>
+  </div>
+
+  <div class="hero-actions">
+    @if (isRequester) {
+      <a routerLink="/tickets/new" class="action primary">
+        <svg lucidePlus [size]="20" aria-hidden="true"></svg>
+        Nouveau ticket manuel
+      </a>
+      <a routerLink="/n0" class="action ghost">
+        <svg lucideSparkles [size]="18" aria-hidden="true"></svg>
+        Demander a AssistEX
+      </a>
+    } @else {
+      <button type="button" class="action ghost" (click)="fetchDashboardData()">
+        <svg lucideRefreshCw [size]="18" aria-hidden="true"></svg>
+        Actualiser
+      </button>
+    }
+  </div>
+</section>
+
+@if (loading()) {
+  <section class="state-card">
+    <span class="spinner"></span>
+    <p>Chargement des indicateurs du tableau de bord...</p>
+  </section>
+}
+
+@if (error() && !loading()) {
+  <section class="state-card error">
+    <p>{{ error() }}</p>
+    <button type="button" class="action ghost" (click)="fetchDashboardData()">Reessayer</button>
+  </section>
+}
+
+@if (!loading() && !error()) {
+  @if (isRequester && requesterData()) {
+    <section class="metrics-grid">
+      <article class="metric-card">
+        <span class="metric-icon"><svg lucideTicket [size]="26" aria-hidden="true"></svg></span>
+        <div><small>Total tickets</small><strong>{{ requesterData()?.totalTickets }}</strong></div>
+      </article>
+      <article class="metric-card amber">
+        <span class="metric-icon"><svg lucideClock3 [size]="26" aria-hidden="true"></svg></span>
+        <div><small>Tickets ouverts</small><strong>{{ requesterData()?.ticketsOuverts }}</strong></div>
+      </article>
+      <article class="metric-card success">
+        <span class="metric-icon"><svg lucideCheckCircle2 [size]="26" aria-hidden="true"></svg></span>
+        <div><small>Tickets resolus</small><strong>{{ requesterData()?.ticketsResolus }}</strong></div>
+      </article>
+      <article class="metric-card">
+        <span class="metric-icon"><svg lucideShieldCheck [size]="26" aria-hidden="true"></svg></span>
+        <div><small>Mes demandes actives</small><strong>{{ requesterData()?.ticketsOuverts }}</strong></div>
+      </article>
+    </section>
+  }
+
+  @if (isTechnician && technicianData()) {
+    <section class="metrics-grid">
+      <article class="metric-card">
+        <span class="metric-icon"><svg lucideTicket [size]="26" aria-hidden="true"></svg></span>
+        <div><small>Assignes a moi</small><strong>{{ technicianData()?.ticketsAssignes }}</strong></div>
+      </article>
+      <article class="metric-card amber">
+        <span class="metric-icon"><svg lucideClock3 [size]="26" aria-hidden="true"></svg></span>
+        <div><small>En cours</small><strong>{{ technicianData()?.ticketsEnCours }}</strong></div>
+      </article>
+      <article class="metric-card">
+        <span class="metric-icon"><svg lucideActivity [size]="26" aria-hidden="true"></svg></span>
+        <div><small>File de niveau</small><strong>{{ technicianData()?.ticketsFileNiveau }}</strong></div>
+      </article>
+      <article class="metric-card success">
+        <span class="metric-icon"><svg lucideWrench [size]="26" aria-hidden="true"></svg></span>
+        <div><small>Interventions</small><strong>{{ technicianData()?.interventionsPlanifiees }}</strong></div>
+      </article>
+    </section>
+  }
+
+  @if (isAdmin && adminData()) {
+    <section class="metrics-grid">
+      <article class="metric-card">
+        <span class="metric-icon"><svg lucideTicket [size]="26" aria-hidden="true"></svg></span>
+        <div><small>Total tickets</small><strong>{{ adminData()?.totalTickets }}</strong></div>
+      </article>
+      <article class="metric-card amber">
+        <span class="metric-icon"><svg lucideClock3 [size]="26" aria-hidden="true"></svg></span>
+        <div><small>Tickets ouverts</small><strong>{{ adminData()?.ticketsOuverts }}</strong></div>
+      </article>
+      <article class="metric-card success">
+        <span class="metric-icon"><svg lucideCheckCircle2 [size]="26" aria-hidden="true"></svg></span>
+        <div><small>Tickets resolus</small><strong>{{ adminData()?.ticketsResolus }}</strong></div>
+      </article>
+      <article class="metric-card danger">
+        <span class="metric-icon"><svg lucidePackageOpen [size]="26" aria-hidden="true"></svg></span>
+        <div><small>Pieces en alerte</small><strong>{{ adminData()?.piecesEnAlerte }}</strong></div>
+      </article>
+    </section>
+  }
+
+  <section class="dashboard-grid">
+    <article class="panel status-panel">
+      <header>
+        <h2>Repartition des tickets par statut</h2>
+      </header>
+      <div class="chart doughnut">
+        <canvas baseChart [data]="statusChartData()" [options]="doughnutOptions" type="doughnut"></canvas>
+      </div>
+    </article>
+
+    @if (isRequester) {
+      <article class="panel volume-panel">
+        <header>
+          <h2>Volume de tickets par jour</h2>
+        </header>
+        <div class="chart bar">
+          <canvas baseChart [data]="dailyVolumeChartData()" [options]="barOptions" type="bar"></canvas>
+        </div>
+      </article>
+    } @else if (isAdmin) {
+      <article class="panel volume-panel">
+        <header>
+          <h2>Volume de tickets par jour</h2>
+        </header>
+        <div class="chart bar">
+          <canvas baseChart [data]="dailyVolumeChartData()" [options]="barOptions" type="bar"></canvas>
+        </div>
+      </article>
+    } @else {
+      <article class="panel volume-panel">
+        <header>
+          <h2>Interventions par statut</h2>
+        </header>
+        <div class="chart bar">
+          <canvas baseChart [data]="secondaryChartData()" [options]="barOptions" type="bar"></canvas>
+        </div>
+      </article>
+    }
+
+    <article class="panel activity-panel">
+      <header>
+        <h2>Activite recente</h2>
+      </header>
+      <div class="activity-list">
+        @for (activity of recentActivity(); track activity.id) {
+          <div class="activity-item" [class.unread]="!activity.readAt">
+            <span class="dot" [class.success]="activity.readAt" [class.info]="!activity.readAt">
+              @if (activity.readAt) {
+                <svg lucideCheckCircle2 [size]="16" aria-hidden="true"></svg>
+              } @else {
+                <svg lucideInfo [size]="16" aria-hidden="true"></svg>
+              }
+            </span>
+            <div>
+              <strong>{{ activity.title }}</strong>
+              <small>{{ activity.message }}</small>
+              <em>{{ activity.createdAt | date:'short' }}</em>
+            </div>
+          </div>
+        } @empty {
+          <div class="activity-item">
+            <span class="dot info"><svg lucideInfo [size]="16" aria-hidden="true"></svg></span>
+            <div>
+              <strong>Aucune activite recente</strong>
+              <small>Les notifications operationnelles apparaitront ici.</small>
+            </div>
+          </div>
+        }
+      </div>
+    </article>
+  </section>
+
+  @if (!isRequester) {
+    <section class="panel tickets-panel">
+      <header>
+        <h2>Suivi operationnel</h2>
+        <a routerLink="/tickets">Voir tous les tickets</a>
+      </header>
+      @if (recentTickets().length > 0) {
+        <div class="recent-ticket-list">
+          @for (ticket of recentTickets(); track ticket.id) {
+            <a routerLink="/tickets" class="recent-ticket">
+              <div>
+                <strong>{{ ticket.reference }}</strong>
+                <span>{{ ticket.titre }}</span>
+              </div>
+              <small>{{ ticket.statut }} · {{ ticket.niveauCourant }}</small>
+              <em>{{ ticket.dateDerniereModification | date:'short' }}</em>
+            </a>
+          }
+        </div>
+      } @else {
+        <div class="empty-table">
+          <svg lucideTicket [size]="34" aria-hidden="true"></svg>
+          <strong>Aucun ticket recent a afficher</strong>
+          <span>Les tickets accessibles a votre role apparaitront ici.</span>
+        </div>
+      }
+    </section>
+  }
+}

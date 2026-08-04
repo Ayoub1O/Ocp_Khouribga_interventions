@@ -1,7 +1,10 @@
 package com.pfe.itsm.tickets.controller;
 
 import com.pfe.itsm.tickets.dto.CreateTicketRequest;
+import com.pfe.itsm.tickets.dto.CloseTicketRequest;
 import com.pfe.itsm.tickets.dto.EscalateTicketRequest;
+import com.pfe.itsm.tickets.domain.SupportLevel;
+import com.pfe.itsm.tickets.dto.ResolveTicketRequest;
 import com.pfe.itsm.tickets.dto.TicketEventResponse;
 import com.pfe.itsm.tickets.dto.TicketResponse;
 import com.pfe.itsm.tickets.service.TicketService;
@@ -35,6 +38,17 @@ public class TicketController {
         return ticketService.create(request);
     }
 
+    @GetMapping
+    public List<TicketResponse> list() {
+        return ticketService.listVisibleTickets();
+    }
+
+    @GetMapping("/queues/{level}")
+    @PreAuthorize("hasAnyRole('TECH_N1', 'TECH_N2', 'TECH_N3', 'ADMIN')")
+    public List<TicketResponse> queue(@PathVariable SupportLevel level) {
+        return ticketService.listQueue(level);
+    }
+
     @PostMapping("/{ticketId}/claim")
     @PreAuthorize("hasAnyRole('TECH_N1', 'TECH_N2', 'TECH_N3', 'ADMIN')")
     public TicketResponse claim(@PathVariable UUID ticketId) {
@@ -52,14 +66,20 @@ public class TicketController {
 
     @PostMapping("/{ticketId}/resolve")
     @PreAuthorize("hasAnyRole('TECH_N1', 'TECH_N2', 'TECH_N3', 'ADMIN')")
-    public TicketResponse resolve(@PathVariable UUID ticketId) {
-        return ticketService.resolve(ticketId);
+    public TicketResponse resolve(
+            @PathVariable UUID ticketId,
+            @Valid @RequestBody ResolveTicketRequest request
+    ) {
+        return ticketService.resolve(ticketId, request.commentaire());
     }
 
     @PostMapping("/{ticketId}/close")
     @PreAuthorize("hasAnyRole('DEMANDEUR', 'ADMIN')")
-    public TicketResponse close(@PathVariable UUID ticketId) {
-        return ticketService.close(ticketId);
+    public TicketResponse close(
+            @PathVariable UUID ticketId,
+            @Valid @RequestBody CloseTicketRequest request
+    ) {
+        return ticketService.close(ticketId, request.commentaire());
     }
 
     @GetMapping("/{ticketId}/events")

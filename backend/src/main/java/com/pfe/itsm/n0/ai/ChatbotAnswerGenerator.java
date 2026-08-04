@@ -23,8 +23,7 @@ public class ChatbotAnswerGenerator {
             String sanitizedQuestion,
             TicketCategory category,
             List<KnowledgeChunk> chunks,
-            SemanticReasoningResponse reasoning
-    ) {
+            SemanticReasoningResponse reasoning) {
         return llmClient.generateAnswer(buildPrompt(sanitizedQuestion, category, chunks, reasoning));
     }
 
@@ -32,21 +31,21 @@ public class ChatbotAnswerGenerator {
             String sanitizedQuestion,
             TicketCategory category,
             List<KnowledgeChunk> chunks,
-            SemanticReasoningResponse reasoning
-    ) {
+            SemanticReasoningResponse reasoning) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("""
-                Tu es l'assistant N0 d'une plateforme ITSM interne.
-                Reponds en francais professionnel, clair et actionnable.
-                Ne demande jamais un mot de passe, un token, une cle API ou une information secrete.
-                Tu peux proposer des corrections courantes issues de tes connaissances generales IT, mais sans citer de sites externes.
-                Utilise en priorite le contexte interne fourni.
-                Si les informations sont insuffisantes ou si une action technicien est necessaire, recommande une escalade vers N1.
-                L'escalade n'est jamais automatique: elle doit etre confirmee par l'utilisateur.
-                Termine par exactement une ligne: Escalade recommandee: oui|non
+        prompt.append(
+                """
+                        Tu es l'assistant N0 d'une plateforme ITSM interne.
+                        Reponds en francais professionnel, clair et actionnable.
+                        Ne demande jamais un mot de passe, un token, une cle API ou une information secrete.
+                        Tu peux proposer des corrections courantes issues de tes connaissances generales IT, mais sans citer de sites externes.
+                        Utilise en priorite le contexte interne fourni.
+                        Si les informations sont insuffisantes ou si une action technicien est necessaire, recommande une escalade vers N1.
+                        L'escalade n'est jamais automatique: elle doit etre confirmee par l'utilisateur.
+                        Termine par exactement une ligne: Escalade recommandee: oui|non
 
-                Question utilisateur sanitisee:
-                """);
+                        Question utilisateur sanitisee:
+                        """);
         prompt.append(sanitizedQuestion).append("\n\n");
 
         prompt.append("Categorie detectee: ")

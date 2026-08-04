@@ -89,5 +89,28 @@ public class UserInvitation {
     public UserRole getInvitedRole() {
         return invitedRole;
     }
-}
 
+    public UUID getId() {
+        return id;
+    }
+
+    public UserAccount getInvitedBy() {
+        return invitedBy;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
+
+    public Instant getAcceptedAt() {
+        return acceptedAt;
+    }
+
+    public Instant getRevokedAt() {
+        return revokedAt;
+    }
+}

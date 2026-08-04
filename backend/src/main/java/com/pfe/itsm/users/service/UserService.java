@@ -3,14 +3,18 @@ package com.pfe.itsm.users.service;
 import com.pfe.itsm.common.BusinessException;
 import com.pfe.itsm.common.ResourceNotFoundException;
 import com.pfe.itsm.auth.security.CurrentUserService;
+import com.pfe.itsm.auth.repository.UserInvitationRepository;
 import com.pfe.itsm.auth.service.SecureTokenGenerator;
 import com.pfe.itsm.auth.service.UserInvitationService;
 import com.pfe.itsm.users.domain.UserAccount;
 import com.pfe.itsm.users.domain.UserRole;
 import com.pfe.itsm.users.dto.CreateUserRequest;
 import com.pfe.itsm.users.dto.InviteUserRequest;
+import com.pfe.itsm.users.dto.PendingInvitationResponse;
+import com.pfe.itsm.users.dto.UpdateProfileRequest;
 import com.pfe.itsm.users.dto.UserResponse;
 import com.pfe.itsm.users.repository.UserAccountRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -26,6 +30,7 @@ public class UserService {
     private final PasswordPolicy passwordPolicy;
     private final CurrentUserService currentUserService;
     private final UserInvitationService userInvitationService;
+    private final UserInvitationRepository userInvitationRepository;
     private final SecureTokenGenerator secureTokenGenerator;
 
     public UserService(
@@ -34,6 +39,7 @@ public class UserService {
             PasswordPolicy passwordPolicy,
             CurrentUserService currentUserService,
             UserInvitationService userInvitationService,
+            UserInvitationRepository userInvitationRepository,
             SecureTokenGenerator secureTokenGenerator
     ) {
         this.userAccountRepository = userAccountRepository;
@@ -41,6 +47,7 @@ public class UserService {
         this.passwordPolicy = passwordPolicy;
         this.currentUserService = currentUserService;
         this.userInvitationService = userInvitationService;
+        this.userInvitationRepository = userInvitationRepository;
         this.secureTokenGenerator = secureTokenGenerator;
     }
 
@@ -56,6 +63,7 @@ public class UserService {
                 request.nom().trim(),
                 request.prenom().trim(),
                 email,
+                normalizeOptional(request.telephone()),
                 passwordEncoder.encode(request.password()),
                 request.role(),
                 true,
@@ -71,21 +79,27 @@ public class UserService {
         }
 
         String email = normalizeEmail(request.email());
-        if (userAccountRepository.existsByEmail(email)) {
-            throw new BusinessException("Un utilisateur existe deja avec cet email.");
+        UserAccount user = userAccountRepository.findByEmail(email).orElse(null);
+        if (user != null) {
+            if (user.getRole() != UserRole.DEMANDEUR) {
+                throw new BusinessException("Ce compte possede deja un role interne.");
+            }
+            userInvitationService.issue(user, request.role(), currentUserService.currentUser());
+            return UserResponse.from(user);
         }
 
-        UserAccount user = userAccountRepository.save(new UserAccount(
+        UserAccount invitedUser = userAccountRepository.save(new UserAccount(
                 request.nom().trim(),
                 request.prenom().trim(),
                 email,
+                normalizeOptional(request.telephone()),
                 passwordEncoder.encode(secureTokenGenerator.generate()),
                 request.role(),
                 false,
                 false
         ));
-        userInvitationService.issue(user, request.role(), currentUserService.currentUser());
-        return UserResponse.from(user);
+        userInvitationService.issue(invitedUser, request.role(), currentUserService.currentUser());
+        return UserResponse.from(invitedUser);
     }
 
     @Transactional(readOnly = true)
@@ -103,7 +117,35 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable."));
     }
 
+    @Transactional(readOnly = true)
+    public List<PendingInvitationResponse> pendingTechnicianInvitations() {
+        return userInvitationRepository.findByAcceptedAtIsNullAndRevokedAtIsNullAndExpiresAtAfterOrderByCreatedAtDesc(Instant.now())
+                .stream()
+                .filter(invitation -> isTechnicianRole(invitation.getInvitedRole()))
+                .map(PendingInvitationResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public UserResponse updateCurrentProfile(UpdateProfileRequest request) {
+        UserAccount user = currentUserService.currentUser();
+        user.mettreAJourProfil(
+                request.nom().trim(),
+                request.prenom().trim(),
+                normalizeOptional(request.telephone())
+        );
+        return UserResponse.from(user);
+    }
+
     private String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeOptional(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private boolean isTechnicianRole(UserRole role) {
+        return role == UserRole.TECH_N1 || role == UserRole.TECH_N2 || role == UserRole.TECH_N3;
     }
 }

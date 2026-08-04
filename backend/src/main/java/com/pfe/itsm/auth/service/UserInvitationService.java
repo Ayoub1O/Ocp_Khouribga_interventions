@@ -62,10 +62,11 @@ public class UserInvitationService {
         }
 
         UserAccount user = invitation.getUser();
-        if (user.getRole() != invitation.getInvitedRole()) {
+        if (user.getRole() != UserRole.DEMANDEUR && user.getRole() != invitation.getInvitedRole()) {
             throw new BusinessException("Invitation incoherente avec le role utilisateur.");
         }
         invitation.accept();
+        user.changerRole(invitation.getInvitedRole());
         user.verifierEmail();
         user.activer();
         return user;
@@ -75,4 +76,3 @@ public class UserInvitationService {
         return mailProperties.frontendBaseUrl() + "/accept-invitation?token=" + rawToken;
     }
 }
-

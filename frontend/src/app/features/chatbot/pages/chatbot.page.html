@@ -1,0 +1,116 @@
+<section class="assistex-hero">
+  <div>
+    <span class="eyebrow">AssistEX</span>
+    <h1>AssistEX support N0</h1>
+    <p>Decrivez votre probleme. AssistEX vous guide et peut creer une demande si necessaire.</p>
+  </div>
+  <div class="hero-actions">
+    <button type="button" class="ghost-action" (click)="start()">
+      <svg lucideRefreshCw [size]="18" aria-hidden="true"></svg>
+      Nouvelle session
+    </button>
+    <a routerLink="/tickets/new" class="primary-action">
+      <svg lucideTicket [size]="18" aria-hidden="true"></svg>
+      Ticket manuel
+    </a>
+  </div>
+</section>
+
+@if (error()) {
+  <section class="notice error">{{ error() }}</section>
+}
+
+<section class="chat-layout">
+  <article class="panel conversation">
+    <header>
+      <div>
+        <h2>Conversation AssistEX</h2>
+        <p>{{ session()?.statut || 'INITIALISATION' }}</p>
+      </div>
+      <span class="session-pill" [class.closed]="!isOpen()">{{ session()?.statut || '...' }}</span>
+    </header>
+
+    <div class="messages">
+      @if (loading()) {
+        <div class="empty-state">Initialisation d AssistEX...</div>
+      } @else {
+        @for (message of messages(); track message.id) {
+          <div class="message" [class.user]="message.auteur === 'UTILISATEUR'" [class.system]="message.auteur === 'SYSTEME'">
+            <span>{{ authorLabel(message) }}</span>
+            <p>{{ message.contenu }}</p>
+            @if (message.confidenceScore !== null) {
+              <small>Confiance {{ message.confidenceScore | percent }}</small>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <form class="composer" (ngSubmit)="send()">
+      <input
+        name="message"
+        [ngModel]="draft()"
+        (ngModelChange)="draft.set($event)"
+        [disabled]="!isOpen() || sending()"
+        placeholder="Decrivez votre probleme informatique..."
+        maxlength="2000"
+      />
+      <button type="submit" class="primary-action" [disabled]="!draft().trim() || !isOpen() || sending()">
+        <svg lucideSend [size]="18" aria-hidden="true"></svg>
+        {{ sending() ? 'Analyse...' : 'Envoyer' }}
+      </button>
+    </form>
+  </article>
+
+  <aside class="side-stack">
+    <article class="panel context-panel">
+      <header>
+        <h2>Contexte</h2>
+        <svg lucideSparkles [size]="20" aria-hidden="true"></svg>
+      </header>
+      <dl>
+        <dt>Categorie detectee</dt>
+        <dd>{{ session()?.categorieDetectee || 'Non determinee' }}</dd>
+        <dt>Ticket cree</dt>
+        <dd>{{ session()?.ticketId || lastAnswer()?.ticket?.reference || 'Aucun' }}</dd>
+        <dt>Escalade recommandee</dt>
+        <dd>{{ lastAnswer()?.escaladeRecommandee ? 'Oui' : 'Non' }}</dd>
+        <dt>Confiance globale</dt>
+        <dd>{{ lastAnswer()?.confidenceScore !== undefined ? (lastAnswer()?.confidenceScore | percent) : 'En attente' }}</dd>
+      </dl>
+    </article>
+
+    <article class="panel actions-panel">
+      <header>
+        <h2>Decision utilisateur</h2>
+        <svg lucideShieldAlert [size]="20" aria-hidden="true"></svg>
+      </header>
+      <button type="button" class="decision success" (click)="confirmResolution()" [disabled]="!isOpen()">
+        <svg lucideCheckCircle2 [size]="18" aria-hidden="true"></svg>
+        Probleme resolu
+      </button>
+      @if (canEscalateToN1()) {
+        <button type="button" class="decision warning" (click)="escalate()" [disabled]="sending()">
+          <svg lucideTicket [size]="18" aria-hidden="true"></svg>
+          Escalader vers N1
+        </button>
+      }
+    </article>
+
+    <article class="panel sources-panel">
+      <header>
+        <h2>Sources utilisees</h2>
+        <svg lucideBot [size]="20" aria-hidden="true"></svg>
+      </header>
+      @if (lastAnswer()?.sources?.length) {
+        <ul>
+          @for (source of lastAnswer()?.sources; track source) {
+            <li>{{ source }}</li>
+          }
+        </ul>
+      } @else {
+        <p>Aucune source affichee pour le moment.</p>
+      }
+    </article>
+  </aside>
+</section>

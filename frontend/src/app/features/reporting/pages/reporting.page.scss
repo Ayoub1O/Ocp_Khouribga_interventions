@@ -1,0 +1,37 @@
+.reports-grid {
+  margin-top: 16px;
+}
+
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.chart-box {
+  height: 360px;
+  padding: 20px;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.loading-panel {
+  color: rgba(255, 255, 255, 0.68);
+  margin-top: 16px;
+  padding: 24px;
+}
+
+.notice {
+  border-radius: 8px;
+  margin-top: 14px;
+  padding: 13px 16px;
+}
+
+.notice.error {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.28);
+  color: #ffb3b3;
+}

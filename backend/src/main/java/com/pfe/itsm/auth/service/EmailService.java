@@ -47,6 +47,22 @@ public class EmailService {
         );
     }
 
+    public void sendPasswordReset(String to, String link) {
+        send(
+                to,
+                "Reinitialisation de votre mot de passe",
+                """
+                Bonjour,
+
+                Une demande de reinitialisation de mot de passe a ete faite pour votre compte.
+                Veuillez definir un nouveau mot de passe avec le lien suivant :
+                %s
+
+                Ce lien est temporaire. Si vous n'etes pas a l'origine de cette demande, ignorez ce message.
+                """.formatted(link)
+        );
+    }
+
     private void send(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(mailProperties.from());
@@ -56,4 +72,3 @@ public class EmailService {
         mailSender.send(message);
     }
 }
-

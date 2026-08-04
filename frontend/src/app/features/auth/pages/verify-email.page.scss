@@ -1,0 +1,114 @@
+@use './login.page.scss' as *;
+
+.status-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 0;
+  color: #ffffff;
+}
+
+/* Spinner */
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.15);
+  border-left-color: #a6c747;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-state p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+}
+
+/* Success & Error State */
+.success-icon, .error-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0 auto 20px;
+}
+
+.success-icon {
+  background: rgba(166, 199, 71, 0.18);
+  color: #a6c747;
+  border: 2px solid #a6c747;
+}
+
+.error-icon {
+  background: rgba(235, 87, 87, 0.18);
+  color: #eb5757;
+  border: 2px solid #eb5757;
+}
+
+.message-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.success-state .message-title {
+  color: #a6c747;
+}
+
+.error-state .message-title {
+  color: #eb5757;
+}
+
+.message-desc {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  max-width: 320px;
+  margin: 0 auto 30px;
+}
+
+/* Button */
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 240px;
+  height: 52px;
+  background: #a6c747;
+  color: #0d1e19;
+  border: none;
+  border-radius: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(166, 199, 71, 0.28);
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  margin: 0 auto;
+
+  &:hover {
+    background: #b5d94e;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(166, 199, 71, 0.38);
+  }
+}
+
+.error-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: none;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: none;
+  }
+}

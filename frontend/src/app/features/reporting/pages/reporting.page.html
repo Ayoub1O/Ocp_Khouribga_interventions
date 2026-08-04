@@ -1,0 +1,80 @@
+<header class="page-header">
+  <div>
+    <h1>Rapports</h1>
+    <p>Indicateurs issus du backend, adaptes au role connecte.</p>
+  </div>
+  <div class="toolbar-actions">
+    @if (isAdmin()) {
+      <button class="ocp-button secondary" type="button" (click)="exportTickets()" [disabled]="exporting()">
+        {{ exporting() ? 'Export...' : 'Exporter incidents' }}
+      </button>
+    }
+    <button class="ocp-button secondary" type="button" (click)="exportStock()" [disabled]="exporting()">
+      Exporter stock
+    </button>
+    <button class="ocp-button secondary" type="button" (click)="exportInterventions()" [disabled]="exporting()">
+      Exporter interventions
+    </button>
+    <button class="ocp-button secondary" type="button" (click)="load()">Actualiser</button>
+  </div>
+</header>
+
+@if (error()) {
+  <section class="notice error">{{ error() }}</section>
+}
+
+<section class="grid grid-4">
+  <article class="panel metric">
+    <span>Tickets</span>
+    <strong>{{ totalTickets() }}</strong>
+    <small>perimetre visible</small>
+  </article>
+  <article class="panel metric">
+    <span>Ouverts / en cours</span>
+    <strong>{{ openTickets() }}</strong>
+    <small>charge active</small>
+  </article>
+  <article class="panel metric">
+    <span>Resolus / file</span>
+    <strong>{{ resolvedTickets() }}</strong>
+    <small>suivi operationnel</small>
+  </article>
+  <article class="panel metric">
+    <span>Interventions</span>
+    <strong>{{ interventions() }}</strong>
+    <small>selon role</small>
+  </article>
+</section>
+
+@if (loading()) {
+  <section class="panel loading-panel">Chargement des rapports...</section>
+} @else {
+  <section class="grid grid-2 reports-grid">
+    <article class="panel">
+      <div class="panel-header">
+        <h2>Volume tickets</h2>
+      </div>
+      <div class="chart-box">
+        <canvas baseChart [data]="volumeChart()" [options]="chartOptions" type="line"></canvas>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <h2>Tickets par statut</h2>
+      </div>
+      <div class="chart-box">
+        <canvas baseChart [data]="statusChart()" [options]="chartOptions" type="bar"></canvas>
+      </div>
+    </article>
+
+    <article class="panel wide">
+      <div class="panel-header">
+        <h2>Activite intervention</h2>
+      </div>
+      <div class="chart-box">
+        <canvas baseChart [data]="secondaryChart()" [options]="chartOptions" type="bar"></canvas>
+      </div>
+    </article>
+  </section>
+}

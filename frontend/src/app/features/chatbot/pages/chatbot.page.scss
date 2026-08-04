@@ -1,0 +1,299 @@
+.assistex-hero {
+  align-items: center;
+  background:
+    linear-gradient(90deg, rgba(5, 20, 17, 0.96), rgba(5, 20, 17, 0.62)),
+    url('/assets/brand/ocp-dashboard-bg.png') center right / contain no-repeat;
+  background-color: #051411;
+  border: 1px solid rgba(183, 255, 31, 0.22);
+  border-radius: 8px;
+  display: flex;
+  gap: 22px;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  min-height: 156px;
+  padding: 28px 32px;
+}
+
+.eyebrow {
+  color: #b7ff1f;
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  color: #ffffff;
+  font-size: 30px;
+}
+
+p {
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.55;
+  margin-top: 8px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.primary-action,
+.ghost-action,
+.decision {
+  align-items: center;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 850;
+  gap: 9px;
+  min-height: 46px;
+  padding: 0 18px;
+  text-decoration: none;
+}
+
+.primary-action {
+  background: linear-gradient(180deg, #c7ff28, #88c934);
+  border: 1px solid rgba(235, 255, 160, 0.65);
+  color: #06140f;
+}
+
+.ghost-action {
+  background: rgba(6, 24, 20, 0.76);
+  border: 1px solid rgba(183, 255, 31, 0.45);
+  color: #b7ff1f;
+}
+
+button:disabled,
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.notice {
+  border-radius: 8px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+}
+
+.notice.error {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.28);
+  color: #ffb3b3;
+}
+
+.chat-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+.panel {
+  background: linear-gradient(145deg, rgba(13, 38, 31, 0.9), rgba(5, 22, 18, 0.86));
+  border: 1px solid rgba(183, 255, 31, 0.18);
+  border-radius: 8px;
+}
+
+.conversation {
+  display: grid;
+  grid-template-rows: auto minmax(420px, 1fr) auto;
+  min-height: 680px;
+  overflow: hidden;
+}
+
+.conversation header,
+.context-panel header,
+.actions-panel header,
+.sources-panel header {
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #b7ff1f;
+  display: flex;
+  justify-content: space-between;
+  padding: 18px 20px;
+}
+
+.conversation h2,
+.context-panel h2,
+.actions-panel h2,
+.sources-panel h2 {
+  color: #ffffff;
+  font-size: 17px;
+}
+
+.session-pill {
+  background: rgba(126, 217, 87, 0.14);
+  border-radius: 999px;
+  color: #7ed957;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 7px 11px;
+}
+
+.session-pill.closed {
+  background: rgba(255, 210, 31, 0.14);
+  color: #ffd21f;
+}
+
+.messages {
+  align-content: start;
+  background:
+    linear-gradient(rgba(5, 22, 18, 0.9), rgba(5, 22, 18, 0.9)),
+    url('/assets/brand/AssistEx_logo.png') center center / 150px auto no-repeat;
+  display: grid;
+  gap: 14px;
+  max-height: 520px;
+  overflow: auto;
+  padding: 20px;
+}
+
+.message {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  justify-self: start;
+  max-width: min(760px, 82%);
+  padding: 13px 15px;
+}
+
+.message.user {
+  background: rgba(183, 255, 31, 0.13);
+  border-color: rgba(183, 255, 31, 0.22);
+  justify-self: end;
+}
+
+.message.system {
+  background: rgba(255, 210, 31, 0.1);
+  border-color: rgba(255, 210, 31, 0.2);
+}
+
+.message span {
+  color: #b7ff1f;
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 7px;
+}
+
+.message p {
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0;
+}
+
+.message small {
+  color: rgba(255, 255, 255, 0.56);
+  display: block;
+  margin-top: 8px;
+}
+
+.empty-state {
+  color: rgba(255, 255, 255, 0.66);
+  display: grid;
+  min-height: 240px;
+  place-items: center;
+}
+
+.composer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr auto;
+  padding: 16px;
+}
+
+.composer input {
+  background: rgba(3, 20, 17, 0.88);
+  border: 1px solid rgba(183, 255, 31, 0.22);
+  border-radius: 8px;
+  color: #ffffff;
+  min-height: 46px;
+  outline: none;
+  padding: 0 14px;
+}
+
+.composer input:focus {
+  border-color: rgba(183, 255, 31, 0.62);
+  box-shadow: 0 0 0 3px rgba(183, 255, 31, 0.08);
+}
+
+.side-stack {
+  align-self: start;
+  display: grid;
+  gap: 14px;
+}
+
+dl {
+  margin: 0;
+  padding: 18px 20px;
+}
+
+dt {
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+dd {
+  color: #ffffff;
+  margin: 5px 0 18px;
+  overflow-wrap: anywhere;
+}
+
+.actions-panel,
+.sources-panel {
+  padding-bottom: 18px;
+}
+
+.decision {
+  margin: 0 18px 10px;
+  width: calc(100% - 36px);
+}
+
+.decision.success {
+  background: rgba(126, 217, 87, 0.14);
+  border: 1px solid rgba(126, 217, 87, 0.32);
+  color: #7ed957;
+}
+
+.decision.warning {
+  background: rgba(255, 210, 31, 0.12);
+  border: 1px solid rgba(255, 210, 31, 0.32);
+  color: #ffd21f;
+}
+
+ul {
+  color: rgba(255, 255, 255, 0.74);
+  margin: 0;
+  padding: 18px 34px;
+}
+
+.sources-panel p {
+  padding: 18px 20px;
+}
+
+@media (max-width: 1100px) {
+  .chat-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .assistex-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .composer {
+    grid-template-columns: 1fr;
+  }
+}

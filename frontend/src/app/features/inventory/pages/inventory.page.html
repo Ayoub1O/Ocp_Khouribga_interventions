@@ -1,0 +1,177 @@
+<header class="page-header">
+  <div>
+    <h1>Stock</h1>
+    <p>Consultation pour les techniciens, mouvements et catalogue reserves au N3 et admin.</p>
+  </div>
+  <div class="toolbar-actions">
+    <button class="ocp-button secondary" type="button" (click)="load()">Actualiser</button>
+    @if (canManageStock()) {
+      <button class="ocp-button primary" type="button" (click)="newPart()">Nouvelle piece</button>
+    }
+  </div>
+</header>
+
+@if (error()) {
+  <section class="notice error">{{ error() }}</section>
+}
+@if (success()) {
+  <section class="notice success">{{ success() }}</section>
+}
+
+<section class="grid grid-3">
+  <article class="panel metric">
+    <span>References suivies</span>
+    <strong>{{ activeCount() }}</strong>
+    <small>catalogue actif</small>
+  </article>
+  <article class="panel metric">
+    <span>Alertes stock</span>
+    <strong>{{ alertCount() }}</strong>
+    <small>seuil atteint</small>
+  </article>
+  <article class="panel metric">
+    <span>Quantite disponible</span>
+    <strong>{{ totalQuantity() }}</strong>
+    <small>toutes references</small>
+  </article>
+</section>
+
+<section class="inventory-layout">
+  <article class="panel inventory-table">
+    <div class="panel-header">
+      <h2>Catalogue pieces</h2>
+      <span class="status-pill status-info">{{ parts().length }} references</span>
+    </div>
+
+    @if (loading()) {
+      <p class="empty-state">Chargement du stock...</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Designation</th>
+            <th>Disponible</th>
+            <th>Seuil</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (part of parts(); track part.id) {
+            <tr (click)="selectPart(part)" [class.selected]="selectedPart()?.id === part.id">
+              <td>{{ part.reference }}</td>
+              <td>
+                <strong>{{ part.nom }}</strong>
+                <small>{{ part.description || 'Sans description' }}</small>
+              </td>
+              <td>{{ part.quantiteDisponible }}</td>
+              <td>{{ part.seuilAlerte }}</td>
+              <td>
+                <span class="status-pill" [class.status-critical]="part.lowStock" [class.status-success]="!part.lowStock">
+                  {{ part.lowStock ? 'ALERTE' : 'OK' }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="empty-row">Aucune piece en stock.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </article>
+
+  <aside class="stock-side">
+    <article class="panel form-panel">
+      <div class="panel-header">
+        <h2>{{ selectedPart() ? 'Fiche piece' : 'Nouvelle piece' }}</h2>
+      </div>
+
+      @if (!canManageStock()) {
+        <p class="empty-state">Lecture seule. Les modifications de stock sont reservees au N3.</p>
+      }
+
+      <form class="stock-form" (ngSubmit)="savePart()">
+        <label>
+          Reference
+          <input name="reference" [(ngModel)]="partForm.reference" [disabled]="!!selectedPart() || !canManageStock()" required />
+        </label>
+        <label>
+          Designation
+          <input name="nom" [(ngModel)]="partForm.nom" [disabled]="!canManageStock()" required />
+        </label>
+        <label>
+          Description
+          <textarea name="description" [(ngModel)]="partForm.description" [disabled]="!canManageStock()" rows="4"></textarea>
+        </label>
+        @if (!selectedPart()) {
+          <label>
+            Quantite initiale
+            <input name="quantiteInitiale" type="number" min="0" [(ngModel)]="partForm.quantiteInitiale" [disabled]="!canManageStock()" />
+          </label>
+        }
+        <label>
+          Seuil alerte
+          <input name="seuilAlerte" type="number" min="0" [(ngModel)]="partForm.seuilAlerte" [disabled]="!canManageStock()" />
+        </label>
+        @if (selectedPart()) {
+          <label class="check-line">
+            <input type="checkbox" name="actif" [(ngModel)]="partForm.actif" [disabled]="!canManageStock()" />
+            Reference active
+          </label>
+        }
+        @if (canManageStock()) {
+          <button class="ocp-button primary full" type="submit" [disabled]="saving()">Enregistrer</button>
+        }
+      </form>
+    </article>
+
+    @if (canManageStock()) {
+      <article class="panel form-panel">
+        <div class="panel-header">
+          <h2>Mouvement stock</h2>
+        </div>
+        <form class="stock-form" (ngSubmit)="createMovement()">
+          <label>
+            Type
+            <select name="type" [(ngModel)]="movementForm.type">
+              <option value="ENTREE">Entree</option>
+              <option value="SORTIE">Sortie</option>
+              <option value="AJUSTEMENT">Ajustement</option>
+            </select>
+          </label>
+          <label>
+            Quantite
+            <input name="quantite" type="number" [(ngModel)]="movementForm.quantite" required />
+          </label>
+          <label>
+            Intervention associee
+            <select
+              name="interventionId"
+              [(ngModel)]="movementForm.interventionId"
+              [required]="movementForm.type === 'SORTIE' && !isAdmin()"
+            >
+              @if (isAdmin()) {
+                <option value="">Aucune intervention (mouvement administratif)</option>
+              } @else {
+                <option value="">Selectionner une intervention terminee</option>
+              }
+              @for (intervention of completedInterventions(); track intervention.id) {
+                <option [value]="intervention.id">{{ interventionLabel(intervention) }}</option>
+              }
+            </select>
+            @if (!isAdmin() && completedInterventions().length === 0) {
+              <small class="field-hint">Aucune intervention terminee disponible pour votre compte.</small>
+            }
+          </label>
+          <label>
+            Commentaire
+            <textarea name="commentaire" [(ngModel)]="movementForm.commentaire" rows="3" required></textarea>
+          </label>
+          <button class="ocp-button secondary full" type="submit" [disabled]="!selectedPart() || saving()">Enregistrer mouvement</button>
+        </form>
+      </article>
+    }
+  </aside>
+</section>

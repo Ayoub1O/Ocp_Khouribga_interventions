@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface InterventionRepository extends JpaRepository<Intervention, UUID> {
 
+    List<Intervention> findAllByOrderByDateDebutPrevueAsc();
+
     List<Intervention> findByTicketIdOrderByDateDebutPrevueAsc(UUID ticketId);
 
     List<Intervention> findByTechnicienIdOrderByDateDebutPrevueAsc(UUID technicienId);

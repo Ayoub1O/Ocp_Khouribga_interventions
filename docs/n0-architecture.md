@@ -147,6 +147,35 @@ Les documents importes sont crees avec `actif=false`. Un administrateur doit rel
 
 Cette decision evite qu'un document brut, incomplet ou non valide devienne directement une source de reponse utilisateur.
 
+## Workflow Frontend De La Base De Connaissances
+
+La page Angular `Base de connaissances` est l'interface d'administration du corpus AssistEX. Elle est reservee aux administrateurs parce que chaque contenu valide peut influencer les reponses donnees aux demandeurs.
+
+Flux d'utilisation :
+
+1. L'administrateur cree un article manuel ou importe un fichier `.txt` / `.md`.
+2. Le backend nettoie le texte, detecte les sections, genere les chunks et cree l'article en brouillon si le contenu vient d'un import.
+3. L'administrateur relit le contenu, corrige le titre, la categorie, les mots-cles et le corps de l'article.
+4. L'administrateur active l'article lorsqu'il est valide.
+5. Les embeddings peuvent etre reindexes depuis l'interface via `POST /api/knowledge/embeddings/reindex`.
+6. AssistEX utilise ensuite uniquement les articles actifs pendant le retrieval.
+
+Endpoints frontend principaux :
+
+```text
+GET    /api/knowledge/articles
+POST   /api/knowledge/articles
+PATCH  /api/knowledge/articles/{id}
+POST   /api/knowledge/imports
+POST   /api/knowledge/embeddings/reindex
+GET    /api/knowledge/semantic/articles/{id}/reasoning
+GET    /api/knowledge/semantic/articles/{id}/triples
+```
+
+La page affiche aussi le raisonnement RDF de l'article selectionne. Cela sert a verifier que les sections actionnables du document sont bien interpretees comme symptomes, causes, solutions, verifications ou regles d'escalade.
+
+Important : le frontend ne transmet pas directement les articles a AssistEX. Le chatbot appelle le backend, et le backend execute la recherche hybride `pgvector + mots-cles + RDF` avant de construire le prompt Gemini.
+
 ## Extraction Structuree
 
 Le backend detecte les sections a partir de titres Markdown ou de lignes terminees par `:`.
