@@ -15,6 +15,7 @@ import java.util.UUID;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -74,7 +75,7 @@ public class KnowledgeVectorService {
                 .addValue("dimension", properties.embeddingDimension()));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
     public List<VectorChunkMatch> search(String sanitizedQuestion) {
         if (!isAvailable() || sanitizedQuestion == null || sanitizedQuestion.isBlank()) {
             return List.of();

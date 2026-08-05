@@ -1,6 +1,8 @@
 package com.pfe.itsm.n0.ai;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pfe.itsm.common.BusinessException;
 import com.pfe.itsm.n0.config.N0AiProperties;
 import java.util.ArrayList;
@@ -18,9 +20,11 @@ public class GeminiLlmClient implements LlmClient {
 
     private final N0AiProperties properties;
     private final RestClient restClient;
+    private final ObjectMapper objectMapper;
 
     public GeminiLlmClient(N0AiProperties properties) {
         this.properties = properties;
+        this.objectMapper = new ObjectMapper();
         this.restClient = RestClient.builder()
                 .baseUrl(properties.baseUrl())
                 .defaultHeader("x-goog-api-key", properties.apiKey())
@@ -48,7 +52,7 @@ public class GeminiLlmClient implements LlmClient {
             return new GeneratedAnswer("", true);
         }
         try {
-            JsonNode response = restClient.post()
+            String responseBody = restClient.post()
                     .uri("/models/{model}:generateContent", properties.generationModel())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of(
@@ -59,8 +63,9 @@ public class GeminiLlmClient implements LlmClient {
                                     "temperature", properties.temperature(),
                                     "maxOutputTokens", properties.maxOutputTokens())))
                     .retrieve()
-                    .body(JsonNode.class);
+                    .body(String.class);
 
+            JsonNode response = readJson(responseBody, "generation Gemini");
             String text = response == null ? "" : response.at("/candidates/0/content/parts/0/text").asText("");
             boolean escalation = text.toLowerCase().contains("escalade recommandee: oui");
             return new GeneratedAnswer(cleanAnswer(text), escalation);
@@ -74,15 +79,16 @@ public class GeminiLlmClient implements LlmClient {
             return List.of();
         }
         try {
-            JsonNode response = restClient.post()
+            String responseBody = restClient.post()
                     .uri("/models/{model}:embedContent", properties.embeddingModel())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of(
                             "content", Map.of("parts", List.of(Map.of("text", text))),
-                            "output_dimensionality", properties.embeddingDimension()))
+                            "outputDimensionality", properties.embeddingDimension()))
                     .retrieve()
-                    .body(JsonNode.class);
+                    .body(String.class);
 
+            JsonNode response = readJson(responseBody, "embedding Gemini");
             JsonNode values = response == null ? null : response.at("/embedding/values");
             if (values == null || !values.isArray()) {
                 values = response == null ? null : response.at("/embeddings/0/values");
@@ -95,6 +101,17 @@ public class GeminiLlmClient implements LlmClient {
             return embedding;
         } catch (RestClientException exception) {
             throw new BusinessException("Le service d'embedding Gemini est indisponible pour le moment.");
+        }
+    }
+
+    private JsonNode readJson(String responseBody, String operation) {
+        if (responseBody == null || responseBody.isBlank()) {
+            throw new BusinessException("Reponse vide du service " + operation + ".");
+        }
+        try {
+            return objectMapper.readTree(responseBody);
+        } catch (JsonProcessingException exception) {
+            throw new BusinessException("Reponse JSON invalide du service " + operation + ".");
         }
     }
 

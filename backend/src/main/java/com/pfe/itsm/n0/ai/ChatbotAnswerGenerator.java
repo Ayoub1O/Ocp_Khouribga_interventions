@@ -40,6 +40,8 @@ public class ChatbotAnswerGenerator {
                         Ne demande jamais un mot de passe, un token, une cle API ou une information secrete.
                         Tu peux proposer des corrections courantes issues de tes connaissances generales IT, mais sans citer de sites externes.
                         Utilise en priorite le contexte interne fourni.
+                        Ne devine jamais le service concerne: VPN, Wi-Fi, Outlook, SAP, imprimante ou autre doivent etre deduits d'indices explicites.
+                        Si la demande reste vague, pose une seule question de clarification au lieu de donner une procedure.
                         Si les informations sont insuffisantes ou si une action technicien est necessaire, recommande une escalade vers N1.
                         L'escalade n'est jamais automatique: elle doit etre confirmee par l'utilisateur.
                         Termine par exactement une ligne: Escalade recommandee: oui|non

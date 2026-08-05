@@ -4,6 +4,9 @@ import com.pfe.itsm.auth.security.CurrentUserService;
 import com.pfe.itsm.common.BusinessException;
 import com.pfe.itsm.common.ResourceNotFoundException;
 import com.pfe.itsm.n0.ai.ChatbotAnswerGenerator;
+import com.pfe.itsm.n0.ai.ConversationIntent;
+import com.pfe.itsm.n0.ai.ConversationPolicy;
+import com.pfe.itsm.n0.ai.ConversationPolicyGenerator;
 import com.pfe.itsm.n0.ai.GeneratedAnswer;
 import com.pfe.itsm.n0.ai.SensitiveDataSanitizer;
 import com.pfe.itsm.n0.domain.ChatbotMessage;
@@ -35,13 +38,21 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ChatbotService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatbotService.class);
     private static final double ANSWER_THRESHOLD = 0.55;
+    private static final String INTRODUCTION_MESSAGE = """
+            Bonjour, je suis AssistEX, votre assistant IT de premier niveau.
+            Je peux vous guider pour diagnostiquer un incident, proposer des verifications simples, ou creer un ticket N1 si le probleme necessite une intervention humaine.
+            Decrivez votre probleme en indiquant si possible le service concerne, le message d'erreur et depuis quand le probleme apparait.
+            """;
 
     private final ChatbotSessionRepository sessionRepository;
     private final ChatbotMessageRepository messageRepository;
@@ -51,6 +62,7 @@ public class ChatbotService {
     private final SemanticGraphService semanticGraphService;
     private final KnowledgeVectorService vectorService;
     private final SensitiveDataSanitizer sensitiveDataSanitizer;
+    private final ConversationPolicyGenerator conversationPolicyGenerator;
     private final ChatbotAnswerGenerator answerGenerator;
 
     public ChatbotService(
@@ -62,6 +74,7 @@ public class ChatbotService {
             SemanticGraphService semanticGraphService,
             KnowledgeVectorService vectorService,
             SensitiveDataSanitizer sensitiveDataSanitizer,
+            ConversationPolicyGenerator conversationPolicyGenerator,
             ChatbotAnswerGenerator answerGenerator
     ) {
         this.sessionRepository = sessionRepository;
@@ -72,6 +85,7 @@ public class ChatbotService {
         this.semanticGraphService = semanticGraphService;
         this.vectorService = vectorService;
         this.sensitiveDataSanitizer = sensitiveDataSanitizer;
+        this.conversationPolicyGenerator = conversationPolicyGenerator;
         this.answerGenerator = answerGenerator;
     }
 
@@ -86,7 +100,7 @@ public class ChatbotService {
         saveMessage(
                 session,
                 ChatbotMessageAuthor.BOT,
-                "Bonjour. Decrivez votre probleme informatique avec le plus de details possible.",
+                INTRODUCTION_MESSAGE.trim(),
                 null,
                 null
         );
@@ -168,6 +182,11 @@ public class ChatbotService {
         String normalized = normalize(sanitizedMessage);
         saveMessage(session, ChatbotMessageAuthor.UTILISATEUR, userMessage.trim(), null, null);
 
+        ConversationPolicy policy = conversationPolicyGenerator.classify(sanitizedMessage);
+        if (!policy.shouldRunRag()) {
+            return respondWithPolicy(session, policy);
+        }
+
         TicketCategory category = detectCategory(normalized);
         if (category != null) {
             session.updateCategory(category);
@@ -239,7 +258,7 @@ public class ChatbotService {
                 ));
             }
         } catch (RuntimeException exception) {
-            // Vector retrieval is an optimization. The controlled keyword path remains authoritative fallback.
+            LOGGER.warn("Recherche vectorielle N0 indisponible, fallback mots-cles active: {}", exception.getMessage());
         }
 
         chunkRepository.findByActifTrueAndArticleActifTrue()
@@ -275,6 +294,39 @@ public class ChatbotService {
         } catch (RuntimeException exception) {
             return new GeneratedAnswer("", true);
         }
+    }
+
+    private ChatbotAnswerResponse respondWithPolicy(ChatbotSession session, ConversationPolicy policy) {
+        String content = switch (policy.intent()) {
+            case SALUTATION -> INTRODUCTION_MESSAGE.trim();
+            case INCIDENT_VAGUE -> policy.questionClarification();
+            case CONFIRMATION_RESOLU ->
+                    "Parfait. Si le probleme est bien resolu, vous pouvez confirmer la resolution. Sinon, decrivez ce qui bloque encore.";
+            case DEMANDE_ESCALADE ->
+                    "Je peux creer un ticket N1 apres votre confirmation. Ajoutez une courte description du probleme si necessaire, puis confirmez l'escalade.";
+            case HORS_SUJET ->
+                    policy.questionClarification().isBlank()
+                            ? "Je peux vous aider sur un incident IT. Quel service ou equipement pose probleme ?"
+                            : policy.questionClarification();
+            case INCIDENT_SPECIFIQUE -> policy.questionClarification();
+        };
+
+        ChatbotMessage botMessage = saveMessage(
+                session,
+                ChatbotMessageAuthor.BOT,
+                content,
+                null,
+                policy.confidence()
+        );
+
+        return new ChatbotAnswerResponse(
+                ChatbotSessionResponse.from(session),
+                ChatbotMessageResponse.from(botMessage),
+                policy.confidence(),
+                policy.intent() == ConversationIntent.DEMANDE_ESCALADE,
+                List.of(),
+                null
+        );
     }
 
     private String fallbackAnswer(
