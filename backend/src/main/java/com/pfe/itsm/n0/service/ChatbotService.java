@@ -8,6 +8,8 @@ import com.pfe.itsm.n0.ai.ConversationIntent;
 import com.pfe.itsm.n0.ai.ConversationPolicy;
 import com.pfe.itsm.n0.ai.ConversationPolicyGenerator;
 import com.pfe.itsm.n0.ai.GeneratedAnswer;
+import com.pfe.itsm.n0.ai.N0TicketDraft;
+import com.pfe.itsm.n0.ai.N0TicketDraftGenerator;
 import com.pfe.itsm.n0.ai.SensitiveDataSanitizer;
 import com.pfe.itsm.n0.domain.ChatbotMessage;
 import com.pfe.itsm.n0.domain.ChatbotMessageAuthor;
@@ -26,7 +28,6 @@ import com.pfe.itsm.n0.repository.ChatbotMessageRepository;
 import com.pfe.itsm.n0.repository.ChatbotSessionRepository;
 import com.pfe.itsm.n0.repository.KnowledgeChunkRepository;
 import com.pfe.itsm.tickets.domain.TicketCategory;
-import com.pfe.itsm.tickets.domain.TicketPriority;
 import com.pfe.itsm.tickets.dto.CreateTicketRequest;
 import com.pfe.itsm.tickets.dto.TicketResponse;
 import com.pfe.itsm.tickets.service.TicketService;
@@ -63,6 +64,7 @@ public class ChatbotService {
     private final KnowledgeVectorService vectorService;
     private final SensitiveDataSanitizer sensitiveDataSanitizer;
     private final ConversationPolicyGenerator conversationPolicyGenerator;
+    private final N0TicketDraftGenerator ticketDraftGenerator;
     private final ChatbotAnswerGenerator answerGenerator;
 
     public ChatbotService(
@@ -75,6 +77,7 @@ public class ChatbotService {
             KnowledgeVectorService vectorService,
             SensitiveDataSanitizer sensitiveDataSanitizer,
             ConversationPolicyGenerator conversationPolicyGenerator,
+            N0TicketDraftGenerator ticketDraftGenerator,
             ChatbotAnswerGenerator answerGenerator
     ) {
         this.sessionRepository = sessionRepository;
@@ -86,6 +89,7 @@ public class ChatbotService {
         this.vectorService = vectorService;
         this.sensitiveDataSanitizer = sensitiveDataSanitizer;
         this.conversationPolicyGenerator = conversationPolicyGenerator;
+        this.ticketDraftGenerator = ticketDraftGenerator;
         this.answerGenerator = answerGenerator;
     }
 
@@ -141,11 +145,12 @@ public class ChatbotService {
         TicketCategory category = session.getCategorieDetectee() == null
                 ? TicketCategory.AUTRE
                 : session.getCategorieDetectee();
+        N0TicketDraft draft = ticketDraftGenerator.generate(ticketEscalationContext(session, category), category);
         TicketResponse ticket = ticketService.create(new CreateTicketRequest(
-                "Incident qualifie par N0",
-                conversationSummary(session),
-                category,
-                TicketPriority.NORMALE
+                draft.titre(),
+                draft.description(),
+                draft.categorie(),
+                draft.priorite()
         ));
 
         session.markEscalated(ticket.id());
@@ -441,16 +446,39 @@ public class ChatbotService {
         return null;
     }
 
-    private String conversationSummary(ChatbotSession session) {
-        StringBuilder builder = new StringBuilder("Conversation N0:\n");
+    private String ticketEscalationContext(ChatbotSession session, TicketCategory category) {
+        StringBuilder builder = new StringBuilder()
+                .append("Categorie detectee: ")
+                .append(category)
+                .append("\n")
+                .append("Probleme exprime par le demandeur:\n");
+
         messageRepository.findBySessionIdOrderByDateCreationAsc(session.getId())
+                .stream()
+                .filter(message -> message.getAuteur() == ChatbotMessageAuthor.UTILISATEUR)
+                .map(message -> sensitiveDataSanitizer.sanitize(message.getContenu(), session.getDemandeur()))
+                .map(this::compact)
+                .filter(this::isUsefulTicketStatement)
+                .limit(6)
                 .forEach(message -> builder
                         .append("- ")
-                        .append(message.getAuteur())
-                        .append(": ")
-                        .append(message.getContenu())
+                        .append(message)
                         .append("\n"));
-        return builder.substring(0, Math.min(builder.length(), 4000));
+
+        builder.append("Etat: le demandeur a confirme que l'incident doit etre transmis a la file N1.");
+        return builder.substring(0, Math.min(builder.length(), 1400));
+    }
+
+    private String compact(String value) {
+        return value == null ? "" : value.replaceAll("\\s+", " ").trim();
+    }
+
+    private boolean isUsefulTicketStatement(String value) {
+        if (value.isBlank()) {
+            return false;
+        }
+        String normalized = normalize(value);
+        return !normalized.matches("^(bonjour|salut|hello|bonsoir|merci|ok|d'accord|daccord)$");
     }
 
     private boolean containsAny(String value, String... fragments) {

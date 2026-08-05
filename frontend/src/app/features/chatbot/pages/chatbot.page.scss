@@ -176,6 +176,58 @@ input:disabled {
   border-color: rgba(255, 210, 31, 0.2);
 }
 
+.message.thinking {
+  align-items: center;
+  display: inline-grid;
+  gap: 10px;
+  grid-template-columns: auto 1fr;
+  min-width: 148px;
+}
+
+.message.thinking span {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.thinking-mark {
+  align-items: center;
+  display: inline-flex;
+  gap: 7px;
+  min-height: 20px;
+}
+
+.thinking-mark i {
+  animation: thinkingPulse 1s ease-in-out infinite;
+  background: #b7ff1f;
+  border-radius: 999px;
+  box-shadow: 0 0 14px rgba(183, 255, 31, 0.34);
+  display: block;
+  height: 7px;
+  opacity: 0.45;
+  width: 7px;
+}
+
+.thinking-mark i:nth-child(2) {
+  animation-delay: 0.14s;
+}
+
+.thinking-mark i:nth-child(3) {
+  animation-delay: 0.28s;
+}
+
+@keyframes thinkingPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0) scale(0.92);
+  }
+
+  45% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.05);
+  }
+}
+
 .message span {
   color: #b7ff1f;
   display: block;

@@ -120,7 +120,7 @@ export class TicketsPage implements OnInit {
   }
 
   protected canClose(ticket: Ticket): boolean {
-    return (this.isRequester() || this.isAdmin()) && ticket.statut === 'RESOLU';
+    return (this.isRequester() || this.isAdmin()) && ticket.statut !== 'CLOTURE';
   }
 
   protected actionTitle(): string {

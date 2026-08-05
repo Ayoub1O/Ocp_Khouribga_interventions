@@ -77,6 +77,7 @@ export class ChatbotPage implements OnInit {
     this.sending.set(true);
     this.error.set(null);
     this.draft.set('');
+    this.messages.update((messages) => [...messages, this.localUserMessage(value)]);
 
     this.chatbotService.sendMessage(sessionId, value).subscribe({
       next: (answer) => {
@@ -128,6 +129,17 @@ export class ChatbotPage implements OnInit {
 
   protected authorLabel(message: ChatbotMessage): string {
     return message.auteur === 'UTILISATEUR' ? 'Vous' : message.auteur === 'SYSTEME' ? 'Systeme' : 'AssistEX';
+  }
+
+  private localUserMessage(content: string): ChatbotMessage {
+    return {
+      id: `local-${Date.now()}`,
+      auteur: 'UTILISATEUR',
+      contenu: content,
+      sourcesUtilisees: null,
+      confidenceScore: null,
+      dateCreation: new Date().toISOString(),
+    };
   }
 
   private loadMessages(sessionId: string, clearLoading = true): void {

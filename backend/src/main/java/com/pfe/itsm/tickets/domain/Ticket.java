@@ -136,8 +136,11 @@ public class Ticket {
     }
 
     public void close(String feedbackCloture) {
-        if (statut != TicketStatus.RESOLU) {
-            throw new IllegalStateException("Seul un ticket resolu peut etre cloture.");
+        if (statut == TicketStatus.CLOTURE) {
+            throw new IllegalStateException("Ce ticket est deja cloture.");
+        }
+        if (dateResolution == null) {
+            this.dateResolution = Instant.now();
         }
         this.statut = TicketStatus.CLOTURE;
         this.dateCloture = Instant.now();

@@ -43,6 +43,16 @@
             }
           </div>
         }
+        @if (sending()) {
+          <div class="message thinking" aria-label="AssistEX analyse la demande">
+            <span>AssistEX</span>
+            <div class="thinking-mark" aria-hidden="true">
+              <i></i>
+              <i></i>
+              <i></i>
+            </div>
+          </div>
+        }
       }
     </div>
 
@@ -57,7 +67,7 @@
       />
       <button type="submit" class="primary-action" [disabled]="!draft().trim() || !isOpen() || sending()">
         <svg lucideSend [size]="18" aria-hidden="true"></svg>
-        {{ sending() ? 'Analyse...' : 'Envoyer' }}
+        Envoyer
       </button>
     </form>
   </article>
