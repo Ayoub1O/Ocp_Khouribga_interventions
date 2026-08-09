@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
+import { LucideHand, LucideRefreshCw } from '@lucide/angular';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SupportLevel, Ticket } from '../../../core/tickets/tickets.models';
@@ -14,7 +14,7 @@ type QueueBucket = {
 
 @Component({
   selector: 'app-queues-page',
-  imports: [CommonModule, MatButtonModule],
+  imports: [CommonModule, LucideHand, LucideRefreshCw],
   templateUrl: './queues.page.html',
   styleUrl: './queues.page.scss',
 })

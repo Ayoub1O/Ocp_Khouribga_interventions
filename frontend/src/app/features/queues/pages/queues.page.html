@@ -10,7 +10,10 @@
     </p>
   </div>
   <div class="toolbar-actions">
-    <button mat-stroked-button type="button" (click)="load()">Actualiser</button>
+    <button class="queue-refresh" type="button" (click)="load()" [disabled]="loading()">
+      <svg lucideRefreshCw [size]="17" aria-hidden="true"></svg>
+      Actualiser
+    </button>
   </div>
 </header>
 
@@ -69,7 +72,8 @@
               <span>{{ ticket.titre }}</span>
               <small>{{ ticket.categorie }} - {{ ticket.priorite }} - {{ ticket.statut }}</small>
             </div>
-            <button mat-stroked-button type="button" (click)="claim(ticket)" [disabled]="claimingId() === ticket.id">
+            <button class="queue-adopt" type="button" (click)="claim(ticket)" [disabled]="claimingId() === ticket.id">
+              <svg lucideHand [size]="16" aria-hidden="true"></svg>
               {{ claimingId() === ticket.id ? 'Adoption...' : 'Adopter' }}
             </button>
           </article>
